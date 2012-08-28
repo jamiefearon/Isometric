@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Isometric</title>
+        <link href="css/game.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" type="text/css" href="css/skin.css" />
+        <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="lib/jquery.jcarousel.min.js"></script>
+        <script type="text/javascript" src="lib/animframe.js"></script>
+	<script type="text/javascript" src="lib/PxLoader.js"></script>
+        <script type="text/javascript" src="lib/PxLoaderImage.js"></script>
+        <script type="text/javascript" src="lib/app.js"></script>
+	<script type="text/javascript" src="lib/jquery.rightClick.js"></script>
+    </head>
+    <body>
+        <!-- canvas container -->
+        <div id="container"></div>
+
+        <!-- top toolbar -->
+        <div id="toolbar" class="panel">
+           <ul>
+		
+	    </ul>
+        </div>
+
+        <!-- builing selection -->
+        <div id="buildingSelectionToolbar">
+            <ul id="buildingCarousel" class="jcarousel-skin-tango">
+               
+            </ul>
+        </div>
+
+        <!-- tech stats info -->
+        <div id="stats" class="panel">
+            <ul>
+		<li>FPS: <span id="fps"></span></li>
+                <p><h1>Drawn area</h1></p>
+		<li>RowStart: <span id="rowStart"></span></li>
+		<li>ColStart: <span id="colStart"></span></li>
+                <li>RowEnd: <span id="rowEnd"></span></li>
+		<li>ColEnd: <span id="colEnd"></span></li>
+	    </ul>
+        </div>
+	
+	<!-- set building tiles rightclick context menu -->
+	<div id="setBuildingTileSet">
+	    <h1>Set Building TileSet </h1>
+	    <div>
+	      <h2>Tileset name</h2>
+	      <input id="buildingTileSetName" type="text">
+	    </div>
+	    <div>
+	      <h2>Number of buildings</h2>
+	      <input id="numberOfBuildings" type="text">
+	    </div>
+	    <div>
+	      <h2>Tile width</h2>
+	      <input id="tileWidth" type="text">
+	      <h2>Tile height</h2>
+	      <input id="tileHeight" type="text">
+	    </div>
+	    <div>
+	      <h2>Frames per building (CSV)</h2>
+	      <p>Default is 1 per building</p>
+	      <input id="framesPerBuilding" type="text">
+	    </div>
+	    <div>
+	      <h2>Duration per building (CSV)</h2>
+	      <p>Default is zero per building</p>
+	      <input id="durationPerBuilding" type="text">
+	    </div>
+	    <div>
+		<p>
+		    <input class="button" id="ok" type="submit" value="Ok">
+		    <input class="button" id="cancel" type="submit" value="Cancel">
+		</p>
+	    </div>
+	</div>
+
+	<div id="menu">
+	    <div id="title">
+		<h1>j2 Map Editor</h1>
+	    </div>
+	    <div id="gameIntro">
+		<div>
+		    <p>Number of Rows</p>
+		    <input id="userRows" name="rows" type="number" min="1">
+		</div>
+		<div>
+		    <p>Number of Columns</p>
+		    <input id="userCols" name="cols" type="number" min="1">
+		</div>
+		<div>
+		    <p>Default Tile</p>
+		    <input id="userDefaultTile" type="input" value='grass'>
+		</div>
+		<div>
+		    <p><input class="button" id="userSubmit" type="submit" value="Create Grid"></p>
+		</div>
+            </div>
+        </div>
+    </body>
+</html>

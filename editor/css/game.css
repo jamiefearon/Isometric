@@ -1,0 +1,171 @@
+* { margin: 0; padding 0; }
+html, body { height: 100%; width 100%; }
+
+body {
+    background: #fff;
+    color: #fff;
+    font-family: Verdana, Arial, san-serif;
+    font-size: 18px;
+    overflow: hidden
+}
+
+h {
+    font-size: 30px;
+}
+
+p {
+    margin: 0 20px;
+}
+
+
+.button {
+    color: #fff;
+    text-decoration: none;
+}
+
+.button:hover {
+    background: #2488f5;
+    color: #fff;
+    text-decoration: none;
+}
+
+.button {
+    background: #185da8;
+    border-radius: 5px;
+}
+
+#userSubmit {
+    display: block;
+    font-size: 30px;
+    margin: 40px 0 0 270px;
+    padding: 10px;
+    width: 200px;
+}
+
+#ok, #cancel {
+    font-size: 30px;
+    padding: 10px;
+    width: 150px;
+    margin-top: 40px;
+}
+
+
+#menu {
+    height: 600px;
+    left: 50%; 
+    top: 50%;
+    margin: -300px 0 0 -400px;
+    position: absolute; /* Places UI on top of the canvas */
+    width: 800px;
+}
+
+#container {
+	background: #000
+}
+
+#title h1 {
+    text-align: center;
+    margin: 10px auto;
+    font-family: "Museo";
+    font-size: 50px;
+    color: #000;
+}
+
+#gameIntro {
+    background: rgba(50, 50, 50, 0.3);
+    margin-top: 100px;
+    padding: 40px 0;
+    text-align: center;
+}
+
+
+							/* Panels */
+
+.panel {
+    position    : absolute;
+    background: #000;
+    opacity: 0.4;
+    visibility: hidden;
+}
+
+#stats {
+    font-size: 12px;
+    bottom: 0px;
+    right: 0px;
+    width: 200px;
+    height: 100px;
+}
+
+#stats h1 {
+    font-size: 18px;
+}
+
+/* toolbar */
+
+#toolbar {
+    top: 0px;
+    left: 0px;
+    height: 50px;
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    opacity: 0.7;
+}
+
+#toolbar ul {
+	list-style: none;
+	margin: 0px;
+	padding: 0px;
+}
+
+#toolbar li {
+	cursor: pointer;
+	float: left;
+	width: 48px;
+	height: 48px;
+	margin-left: 10px;
+	display: inline;
+}
+
+/*
+#toolbar li.active {
+	-webkit-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
+	-moz-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
+	-ms-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
+	-o-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
+	box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
+}
+*/
+
+#buildingSelectionToolbar {
+    position    : absolute;
+    top: 60px;
+    visibility: hidden;
+}
+
+
+
+/* Right click menu for building tile selection */
+#setBuildingTileSet {
+    height: 500px;
+    left: 50%; 
+    bottom: 50%;
+    margin: -200px 0 0 -200px;
+    position: relative;
+    width: 400px;
+    opacity: 0.7;
+    visibility: hidden;
+    background: #000;
+    z-index:1;
+    padding: 20px;
+}
+
+#setBuildingTileSet h1 {
+    text-align: center;
+    font-size: 25px;
+    padding-bottom: 25px;
+}
+
+#setBuildingTileSet h2 {
+    font-size: 20px;
+}

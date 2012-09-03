@@ -217,8 +217,8 @@
       if (this.dragHelper.active) {
         x = e.clientX;
         y = e.clientY;
-        this.scrollPosition.x -= Math.round((this.dragHelper.x - x) / 28);
-        return this.scrollPosition.y -= Math.round((this.dragHelper.y - y) / 28);
+        this.scrollPosition.x = Math.round(x - this.dragHelper.x);
+        return this.scrollPosition.y = Math.round(y - this.dragHelper.y);
       }
     };
 
@@ -233,8 +233,8 @@
       x = e.clientX;
       y = e.clientY;
       this.dragHelper.active = true;
-      this.dragHelper.x = x;
-      return this.dragHelper.y = y;
+      this.dragHelper.x = x - this.scrollPosition.x;
+      return this.dragHelper.y = y - this.scrollPosition.y;
     };
 
     return IsometricGrid;

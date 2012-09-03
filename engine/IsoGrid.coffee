@@ -142,8 +142,8 @@ class IsometricGrid
     if @dragHelper.active
       x = e.clientX
       y = e.clientY
-      @scrollPosition.x -= Math.round((@dragHelper.x - x) / 28)
-      @scrollPosition.y -= Math.round((@dragHelper.y - y) / 28)
+      @scrollPosition.x = Math.round((x - @dragHelper.x))
+      @scrollPosition.y = Math.round((y - @dragHelper.y))
 
 
   handleMouseUp: (e) =>
@@ -155,8 +155,8 @@ class IsometricGrid
     x = e.clientX
     y = e.clientY
     @dragHelper.active = true
-    @dragHelper.x = x
-    @dragHelper.y = y
+    @dragHelper.x = x - @scrollPosition.x  
+    @dragHelper.y = y - @scrollPosition.y
     
 			
         

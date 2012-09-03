@@ -106,55 +106,29 @@ class UI
     if mapData.buildingTileSets isnt undefined and mapData.buildingTileSets[flagNumber] isnt undefined
       buildingTileSet = mapData.buildingTileSets[flagNumber]
     else
-      # clear the carousel and return
-      carousel = $('#buildingCarousel').data('jcarousel')
-      carousel.reset()
-      $('#buildingCarousel').empty()
-      $('.jcarousel-skin-tango .jcarousel-container-vertical').css('width', "75px") # reset width
+      # Clear the toolbar
+      $("#buildingSelectionToolbar ul").empty()
       return
     
-   
-    #
-    # update the carousel with the approriate thumbnails (1st frame) of the buildingTileSet
-    #
-    
-    # firstly change the css properties for the items in the carousel so that each square place holder
-    # in the carousel is the same size as each sprite also change the width of the whole carousel to fit
-    $('.jcarousel-skin-tango .jcarousel-clip-vertical').css('height', "#{mapData.buildingTileSets[flagNumber].tileHeight}px")
-    $('.jcarousel-skin-tango .jcarousel-clip-vertical').css('width', "#{mapData.buildingTileSets[flagNumber].tileWidth}px")
-    $('.jcarousel-skin-tango .jcarousel-container-vertical').css('width', "#{mapData.buildingTileSets[flagNumber].tileWidth}px")
+    # make sure the toolbar is empty from the last load
+    $("#buildingSelectionToolbar ul").empty()
     
     
-    
-    
+    # fislty get filename from spritesheet.src (i.e. convert from url to just *****.png)
     spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src
     index = spriteMap.lastIndexOf("/") + 1
     filename = spriteMap.substr(index)
-    carousel = $('#buildingCarousel').data('jcarousel')
-    carousel.add 0, "<img style='top: 0px; position: relative;' src='image/grass.png' />"
-    carousel.add 1, "<img style='top: 0px; position: relative;' src='image/dirt.png' />"
-    carousel.size(2)
     
-    ###
-    $('#buildingCarousel').jcarousel({
-      size: 1,
-      itemLoadCallback: {onBeforeAnimation: (carousel, state) =>
-        # fislty get filename from spritesheet.src (i.e. convert from url to just *****.png)
-        spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src
-        index = spriteMap.lastIndexOf("/") + 1
-        filename = spriteMap.substr(index)
-        
-        carousel.add 0, "<img src='image/#{filename}' />"
-        
-        # add thumbnails to carousel
-        for i in [1..mapData.buildingTileSets[flagNumber].numberOfBuildings] 
-          offsetX = -i * mapData.buildingTileSets[flagNumber].tileHeight
-          carousel.add i, "<img style='top: #{offsetX}px; position: relative;' src='image/#{filename}' />"
-          console.log('i = ', i)
-        
-        }
-    })
-    ###
+    # now load the icons
+    for i in [0..mapData.buildingTileSets[flagNumber].numberOfBuildings - 1]
+      console.log('meow')
+      $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}'></li>")
+      $("#buildingIcon#{i}").css("background", "url(image/#{filename}) 0 -#{i*60}px no-repeat")
+
+    # resize any relevent css values of li and buildingSelectionToolbar
+    $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].tileWidth}px")
+    $("#buildingSelectionToolbar li").css('height', "#{mapData.buildingTileSets[flagNumber].tileHeight}px")
+    $("#buildingSelectionToolbar").css('height', "#{mapData.buildingTileSets[flagNumber].tileHeight}px")
   
     
     
@@ -191,6 +165,7 @@ class UI
         # if the user has clicked on a flag which is already open then close it
         if @buildingSelectionToolBarVisible == idClickEle.substring(7,idClickEle.length)
           $("#buildingSelectionToolbar").css("visibility","hidden")
+          $("#buildingSelectionToolbar ul").empty()
           @buildingSelectionToolBarVisible = false
           @toolSelect = null
         else # close the current one and open the new selected one

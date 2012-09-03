@@ -5,11 +5,6 @@ assetManager = null
 mapData = {}
 
 init = =>
-    
-  # Setup the building carosol
-  $('#buildingCarousel').jcarousel({
-    vertical : true
-  })
   
   
   mapData.meow = 2 # TEMP
@@ -23,6 +18,7 @@ init = =>
     assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1')
     assetManager.addAsset(loader.addImage('image/grass.png'), 'grass')
     assetManager.addAsset(loader.addImage('image/dirt.png'), 'dirt')
+    assetManager.addAsset(loader.addImage('image/grass_and_water.png'), 'gw')
     
     loader.addCompletionListener =>
       $('#gameIntro').show() 

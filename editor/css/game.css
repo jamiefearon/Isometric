@@ -127,23 +127,6 @@ p {
 	display: inline;
 }
 
-/*
-#toolbar li.active {
-	-webkit-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
-	-moz-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
-	-ms-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
-	-o-box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
-	box-shadow: inset 1px 1px 20px #FFF, 1px 1px 20px #FFF;
-}
-*/
-
-#buildingSelectionToolbar {
-    position    : absolute;
-    top: 60px;
-    visibility: hidden;
-}
-
-
 
 /* Right click menu for building tile selection */
 #setBuildingTileSet {
@@ -168,4 +151,32 @@ p {
 
 #setBuildingTileSet h2 {
     font-size: 20px;
+}
+
+
+
+#buildingSelectionToolbar{
+    top: 60px;
+    left: 0px;
+    height: 60px;
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    opacity: 0.7;
+}
+
+#buildingSelectionToolbar ul {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+#buildingSelectionToolbar li {
+    cursor: pointer;
+    float: left;
+    width: 60px;
+    height: 60px;
+    margin-left: 10px;
+    display: inline;
+  
 }

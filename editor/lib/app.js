@@ -432,9 +432,6 @@
 
   init = function() {
     var loader;
-    $('#buildingCarousel').jcarousel({
-      vertical: true
-    });
     mapData.meow = 2;
     if (!assetManager) {
       $('#gameIntro').hide();
@@ -443,6 +440,7 @@
       assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1');
       assetManager.addAsset(loader.addImage('image/grass.png'), 'grass');
       assetManager.addAsset(loader.addImage('image/dirt.png'), 'dirt');
+      assetManager.addAsset(loader.addImage('image/grass_and_water.png'), 'gw');
       loader.addCompletionListener(function() {
         return $('#gameIntro').show();
       });
@@ -587,46 +585,25 @@
     };
 
     UI.prototype.loadBuildingData = function(flagNumber) {
-      var buildingTileSet, carousel, filename, index, spriteMap;
+      var buildingTileSet, filename, i, index, spriteMap, _i, _ref;
       if (mapData.buildingTileSets !== void 0 && mapData.buildingTileSets[flagNumber] !== void 0) {
         buildingTileSet = mapData.buildingTileSets[flagNumber];
       } else {
-        carousel = $('#buildingCarousel').data('jcarousel');
-        carousel.reset();
-        $('.jcarousel-skin-tango .jcarousel-container-vertical').css('width', "75px");
+        $("#buildingSelectionToolbar ul").empty();
         return;
       }
-      $('.jcarousel-skin-tango .jcarousel-clip-vertical').css('height', "" + mapData.buildingTileSets[flagNumber].tileHeight + "px");
-      $('.jcarousel-skin-tango .jcarousel-clip-vertical').css('width', "" + mapData.buildingTileSets[flagNumber].tileWidth + "px");
-      $('.jcarousel-skin-tango .jcarousel-container-vertical').css('width', "" + mapData.buildingTileSets[flagNumber].tileWidth + "px");
+      $("#buildingSelectionToolbar ul").empty();
       spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src;
       index = spriteMap.lastIndexOf("/") + 1;
       filename = spriteMap.substr(index);
-      carousel = $('#buildingCarousel').data('jcarousel');
-      carousel.add(0, "<img style='top: 0px; position: relative;' src='image/grass.png' />");
-      carousel.add(1, "<img style='top: 0px; position: relative;' src='image/dirt.png' />");
-      return carousel.size(2);
-      /*
-          $('#buildingCarousel').jcarousel({
-            size: 1,
-            itemLoadCallback: {onBeforeAnimation: (carousel, state) =>
-              # fislty get filename from spritesheet.src (i.e. convert from url to just *****.png)
-              spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src
-              index = spriteMap.lastIndexOf("/") + 1
-              filename = spriteMap.substr(index)
-              
-              carousel.add 0, "<img src='image/#{filename}' />"
-              
-              # add thumbnails to carousel
-              for i in [1..mapData.buildingTileSets[flagNumber].numberOfBuildings] 
-                offsetX = -i * mapData.buildingTileSets[flagNumber].tileHeight
-                carousel.add i, "<img style='top: #{offsetX}px; position: relative;' src='image/#{filename}' />"
-                console.log('i = ', i)
-              
-              }
-          })
-      */
-
+      for (i = _i = 0, _ref = mapData.buildingTileSets[flagNumber].numberOfBuildings - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        console.log('meow');
+        $("#buildingSelectionToolbar ul").append("<li id='buildingIcon" + i + "'></li>");
+        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") 0 -" + (i * 60) + "px no-repeat");
+      }
+      $("#buildingSelectionToolbar li").css('width', "" + mapData.buildingTileSets[flagNumber].tileWidth + "px");
+      $("#buildingSelectionToolbar li").css('height', "" + mapData.buildingTileSets[flagNumber].tileHeight + "px");
+      return $("#buildingSelectionToolbar").css('height', "" + mapData.buildingTileSets[flagNumber].tileHeight + "px");
     };
 
     UI.prototype.UIMouseDown = function(e) {
@@ -644,6 +621,7 @@
         } else {
           if (this.buildingSelectionToolBarVisible === idClickEle.substring(7, idClickEle.length)) {
             $("#buildingSelectionToolbar").css("visibility", "hidden");
+            $("#buildingSelectionToolbar ul").empty();
             this.buildingSelectionToolBarVisible = false;
             this.toolSelect = null;
           } else {

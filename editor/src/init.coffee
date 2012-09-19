@@ -1,5 +1,6 @@
 
 assetManager = null
+game = null
 
 # this contains all map data to be saved to JSON
 mapData = {}
@@ -18,7 +19,7 @@ init = =>
     assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1')
     assetManager.addAsset(loader.addImage('image/grass.png'), 'grass')
     assetManager.addAsset(loader.addImage('image/dirt.png'), 'dirt')
-    assetManager.addAsset(loader.addImage('image/grass_and_water.png'), 'gw')
+    assetManager.addAsset(loader.addImage('image/cinema.png'), 'cinema')
     
     loader.addCompletionListener =>
       $('#gameIntro').show() 

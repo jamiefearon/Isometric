@@ -29,6 +29,18 @@ class IsometricGrid
     @scrollPosition =
       x: 0
       y: 0
+    
+    # Zoom level
+    @zoom = 1
+
+    # Default zoom level
+    @tileWidth = @defaultTile.width * @zoom
+    @tileHeight = @defaultTile.height * @zoom
+
+    # Initially center the starting point horizontally and vertically
+    @scrollPosition.y -= @height * @zoom + @scrollPosition.y
+    @scrollPosition.x -= @width * @zoom + @scrollPosition.x
+    
       
     @dragHelper = 
       active: false
@@ -47,6 +59,7 @@ class IsometricGrid
       Z: 90,
       X: 88,
       R: 82
+      
     
     
     # TODO fix later
@@ -69,11 +82,11 @@ class IsometricGrid
 
   translatePixelsToMatrix: (x, y) ->
 
-    gridOffsetY = @height + @scrollPosition.y
-    gridOffsetX = @width
+    gridOffsetY = @height * @zoom + @scrollPosition.y
+    gridOffsetX = @width * @zoom
 
     # By default the grid appears centered horizontally
-    gridOffsetX += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth / 2) + @scrollPosition.x
+    gridOffsetX += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth * @zoom / 2) + @scrollPosition.x
 
     col = (2 * (y - gridOffsetY) - x + gridOffsetX) / 2
     row = x + col - gridOffsetX - @tileHeight
@@ -84,7 +97,14 @@ class IsometricGrid
     return {} =
       row: row
       col: col
-    	
+      
+  
+  # set zoom level
+  setZoom: (value) =>
+    @zoom = value
+
+    @tileWidth = @defaultTile.width * @zoom
+    @tileHeight = @defaultTile.height * @zoom
 
 
   draw: ->
@@ -112,15 +132,22 @@ class IsometricGrid
       $("#rowEnd").html(rowCount)
       $("#colEnd").html(colCount)
     
-    for row in [startRow..rowCount]
-      for col in [startCol..colCount]
-        xpos = (row - col) * @tileHeight + @width
-        xpos += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth / 2) + @scrollPosition.x
-        ypos = (row + col) * (@tileHeight / 2) + @height + @scrollPosition.y
+    for row in [startRow..rowCount - 1]
+      for col in [startCol..colCount - 1]
+        xpos = (row - col) * @tileHeight + (@width * @zoom)
+        xpos += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth / 2 * @zoom) + @scrollPosition.x
+        ypos = (row + col) * (@tileHeight / 2) + (@height * @zoom) + @scrollPosition.y
         
         if (Math.round(xpos) + @tileWidth >= 0 and Math.round(ypos) + @tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height)
-          IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight)
-          
+          if (typeof @tileMap[row] isnt 'undefined' and typeof @tileMap[row][col] isnt 'undefined')
+            if (@tileMap[row][col] instanceof Building)
+              ypos -= (@tileMap[row][col].sprite.height * @zoom) - (@tileHeight)  
+              xpos -= ((@tileMap[row][col].sprite.width * @zoom) / 2) - (@tileWidth / 2) 
+              @tileMap[row][col].sprite.setPosition(xpos, ypos)
+              @tileMap[row][col].sprite.draw()
+          else
+            IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight) 
+        
 
        
   # TODO - fix later  
@@ -158,7 +185,14 @@ class IsometricGrid
     @dragHelper.x = x - @scrollPosition.x  
     @dragHelper.y = y - @scrollPosition.y
     
-			
+    pos = @translatePixelsToMatrix(x, y)
+    obj = new Building(new Sprite(spritesheet: assetManager.getAsset('cinema')), 2, 2)
+
+    for i in [(pos.row + 1) - obj.width..pos.row]
+      for j in [(pos.col + 1) - obj.height..pos.col]
+        if (@tileMap[i] == undefined) then @tileMap[i] = []
+        if (i is pos.row and j is pos.col) then @tileMap[i][j] = obj
+
         
         
         

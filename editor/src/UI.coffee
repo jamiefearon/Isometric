@@ -10,6 +10,9 @@ class UI
     
     # @toolSelect contains a string representing the selected tool
     @toolSelect = null;
+
+    # Current's zoom level
+    @zoomLevel = 1;
     
     
     # @buildingSelectionToolBarVisible equals the number of the flag if selected, else false
@@ -121,9 +124,10 @@ class UI
     
     # now load the icons
     for i in [0..mapData.buildingTileSets[flagNumber].numberOfBuildings - 1]
-      console.log('meow')
-      $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}'></li>")
+      $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}' class='#{flagNumber}'></li>")
       $("#buildingIcon#{i}").css("background", "url(image/#{filename}) 0 -#{i*60}px no-repeat")
+      $("#buildingIcon#{i}").click (e) =>
+        console.log(e.target.id)
 
     # resize any relevent css values of li and buildingSelectionToolbar
     $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].tileWidth}px")
@@ -177,5 +181,12 @@ class UI
       
       when 'zoomIn'
         @toolSelect = 'zoomIn'
-        console.log('zoomIn')
+        @zoomLevel = @zoomLevel * 2
+        @zoomLevel
+        game.grid.setZoom(@zoomLevel)
+        
+      when 'zoomOut'
+        @toolSelect = 'zoomOut'
+        @zoomLevel= @zoomLevel / 2
+        game.grid.setZoom(@zoomLevel)
     

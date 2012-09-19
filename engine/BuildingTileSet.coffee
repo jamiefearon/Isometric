@@ -35,23 +35,24 @@ class BuildingTileSet
   constructor: (@spritesheet, @tileWidth, @tileHeight, @numberOfBuildings, @framesPerBuilding, @durationPerBuilding)  ->
     
     # an array containing all building sprites
-    @buildingSprites = new Array()
+    # TODO: remove this and change to an array of buildings
+    @buildings = new Array()
     
     
     # Produce the building sprites from the spritesheet
     for i in [0..@numberOfBuildings - 1]
       # create the building sprite
       buildingSprite = new Sprite(spritesheet: @spritesheet, width: @tileWidth, height: @tileHeight, offsetX: 0, offsetY: i*@tileHeight, frames: @framesPerBuilding[i], duration: @durationPerBuilding[i])
-      @buildingSprites.push(buildingSprite)
+      # create a building and put a sprite in
+      building = new Building(new Sprite(buildingSprite, 1, 1)) # TODO - this is wrong!!!
+      @buildings.push(buildingSprite)
       
       
   
 
-  # Returns a building sprite based on line number in sprite sheet
-  # if firstFrameImage is true then only an img of the first frame
-  # is returned this is useful for representing the sprite in a toolbar etc
-  getBuildingSprite: (lineNumber) =>
-    return @buildingSprites[lineNumber]
+  # Returns a building based on line number in sprite sheet
+  getBuilding: (lineNumber) =>
+    return @buildings[lineNumber]
     
                                             
     

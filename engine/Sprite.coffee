@@ -54,12 +54,7 @@ class Sprite
 
 
   draw: =>
-    Sprite.renderer.context.drawImage(@spritesheet, @offsetX, @offsetY, @width, @height, @posX, @posY, @width, @height)
+    Sprite.renderer.context.drawImage(@spritesheet, @offsetX, @offsetY, @width, @height, @posX, @posY, @width* game.grid.zoom, @height* game.grid.zoom)
     # TODO - pass to the renderer draw(render) function renderer.draw(image)
-      
-     
-  # returns an image representation of the sprite, ie the first frame; this is useful for representing the sprite in a toolbar etc
-  getTumbnail: => 
-      
       
       

@@ -67,10 +67,11 @@
 
   Building = (function() {
 
-    function Building(sprite, width, height) {
+    function Building(sprite, width, height, id) {
       this.sprite = sprite;
       this.width = width;
       this.height = height;
+      this.id = id;
     }
 
     return Building;
@@ -208,6 +209,7 @@
             xpos += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2 * this.zoom) + this.scrollPosition.x;
             ypos = (row + col) * (this.tileHeight / 2) + (this.height * this.zoom) + this.scrollPosition.y;
             if (Math.round(xpos) + this.tileWidth >= 0 && Math.round(ypos) + this.tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height) {
+              IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight);
               if (typeof this.tileMap[row] !== 'undefined' && typeof this.tileMap[row][col] !== 'undefined') {
                 if (this.tileMap[row][col] instanceof Building) {
                   ypos -= (this.tileMap[row][col].sprite.height * this.zoom) - this.tileHeight;
@@ -218,7 +220,7 @@
                   _results1.push(void 0);
                 }
               } else {
-                _results1.push(IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight));
+                _results1.push(void 0);
               }
             } else {
               _results1.push(void 0);
@@ -363,55 +365,13 @@
 
   })();
 
-  /*
-  
-  Each spritesheet should look like this:
-  
-  -----------------------------------------------------------------------------------------------
-  building 1 (frame 1)
-  -----------------------------------------------------------------------------------------------
-  building 2 (frame 1)  -  building 2 (frame 2)  -  building 2 (frame 3) 
-  -----------------------------------------------------------------------------------------------
-  building 3 (frame 1)  -  building 3 (frame 2) 
-  -----------------------------------------------------------------------------------------------
-  building 4 (frame 1)  -  building 4 (frame 2)  -  building 4 (frame 3)  -  building 4 (frame 4)
-  -----------------------------------------------------------------------------------------------
-  
-  
-  @framesPerBuilding contains an array storing information about how many frames each building has.
-  
-  Usage, assuming above spritesheet is used:
-  
-  framesPerBuilding = [1, 3, 2, 4]
-  */
-
-
   BuildingTileSet = (function() {
 
-    function BuildingTileSet(spritesheet, tileWidth, tileHeight, numberOfBuildings, framesPerBuilding, durationPerBuilding) {
-      var building, buildingSprite, i, _i, _ref;
+    function BuildingTileSet(spritesheet) {
       this.spritesheet = spritesheet;
-      this.tileWidth = tileWidth;
-      this.tileHeight = tileHeight;
-      this.numberOfBuildings = numberOfBuildings;
-      this.framesPerBuilding = framesPerBuilding;
-      this.durationPerBuilding = durationPerBuilding;
       this.getBuilding = __bind(this.getBuilding, this);
 
       this.buildings = new Array();
-      for (i = _i = 0, _ref = this.numberOfBuildings - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-        buildingSprite = new Sprite({
-          spritesheet: this.spritesheet,
-          width: this.tileWidth,
-          height: this.tileHeight,
-          offsetX: 0,
-          offsetY: i * this.tileHeight,
-          frames: this.framesPerBuilding[i],
-          duration: this.durationPerBuilding[i]
-        });
-        building = new Building(new Sprite(buildingSprite, 1, 1));
-        this.buildings.push(buildingSprite);
-      }
     }
 
     BuildingTileSet.prototype.getBuilding = function(lineNumber) {
@@ -599,31 +559,48 @@
     };
 
     UI.prototype.displayBuildingSelectonDialog = function(id) {
-      var _this = this;
+      var buildingTileSet, flagNumber,
+        _this = this;
       $("#setBuildingTileSet").css("visibility", "visible");
-      $("#cancel").unbind("click").click(function() {
-        return $("#setBuildingTileSet").css("visibility", "hidden");
-      });
-      return $("#ok").unbind("click").click(function() {
-        var buildingTileSet, durationPerBuilding, flagNumber, framesPerBuilding, i, _i, _j;
-        flagNumber = id.substring(7, id.length);
-        framesPerBuilding = $("#framesPerBuilding").val().split(',');
-        for (i = _i = 1; 1 <= framesPerBuilding ? _i <= framesPerBuilding : _i >= framesPerBuilding; i = 1 <= framesPerBuilding ? ++_i : --_i) {
-          framesPerBuilding[i] = +framesPerBuilding[i];
-        }
-        durationPerBuilding = $("#durationPerBuilding").val().split(',');
-        for (i = _j = 1; 1 <= durationPerBuilding ? _j <= durationPerBuilding : _j >= durationPerBuilding; i = 1 <= durationPerBuilding ? ++_j : --_j) {
-          durationPerBuilding[i] = +durationPerBuilding[i];
-        }
-        buildingTileSet = new BuildingTileSet(assetManager.getAsset($("#buildingTileSetName").val()), $("#tileWidth").val(), $("#tileHeight").val(), $("#numberOfBuildings").val(), framesPerBuilding, durationPerBuilding);
+      flagNumber = id.substring(7, id.length);
+      buildingTileSet = void 0;
+      $("#done").unbind("click").click(function() {
+        $("#setBuildingTileSet").css("visibility", "hidden");
         if (mapData.buildingTileSets === void 0) {
           mapData.buildingTileSets = new Array();
-          mapData.buildingTileSets[flagNumber] = buildingTileSet;
+          return mapData.buildingTileSets[flagNumber] = buildingTileSet;
         } else {
-          mapData.buildingTileSets[flagNumber] = buildingTileSet;
+          return mapData.buildingTileSets[flagNumber] = buildingTileSet;
         }
-        _this.loadBuildingData(flagNumber);
-        return $("#setBuildingTileSet").css("visibility", "hidden");
+      });
+      return $("#createbuilding").unbind("click").click(function() {
+        var tBuilding, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSprite, tSpritesheet, tWidth, _ref;
+        tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val());
+        tOffsetX = parseInt($("#offsetX").val());
+        tOffsetY = parseInt($("#offsetY").val());
+        tPixelWidth = parseInt($("#pixeltileWidth").val());
+        tPixelHeight = parseInt($("#pixeltileHeight").val());
+        tWidth = parseInt($("#pixeltileWidth").val());
+        tHeight = parseInt($("#pixeltileHeight").val());
+        tFrames = parseInt($("#frames").val());
+        tDuration = parseInt($("#duration").val());
+        tId = parseInt($("#id").val());
+        if (mapData.buildingTileSets !== void 0 && buildingTileSet === void 0) {
+          buildingTileSet = (_ref = mapData.buildingTileSets[flagNumber]) != null ? _ref : new BuildingTileSet(tSpritesheet);
+        } else if (buildingTileSet === void 0) {
+          buildingTileSet = new BuildingTileSet(tSpritesheet);
+        }
+        tSprite = new Sprite({
+          spritesheet: tSpritesheet,
+          width: _this.tPixelWidth,
+          height: tPixelHeight,
+          offsetX: tOffsetX,
+          offsetY: tOffsetY,
+          frames: tFrames,
+          duration: tDuration
+        });
+        tBuilding = new Building(tSprite, tWidth, tHeight, tId);
+        return buildingTileSet.buildings.push(tBuilding);
       });
     };
 
@@ -640,9 +617,9 @@
       spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src;
       index = spriteMap.lastIndexOf("/") + 1;
       filename = spriteMap.substr(index);
-      for (i = _i = 0, _ref = mapData.buildingTileSets[flagNumber].numberOfBuildings - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      for (i = _i = 0, _ref = mapData.buildingTileSets[flagNumber].buildings.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         $("#buildingSelectionToolbar ul").append("<li id='buildingIcon" + i + "' class='" + flagNumber + "'></li>");
-        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") 0 -" + (i * 60) + "px no-repeat");
+        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") -" + mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetX + "px -" + mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetY + "px no-repeat");
         $("#buildingIcon" + i).click(function(e) {
           return console.log(e.target.id);
         });

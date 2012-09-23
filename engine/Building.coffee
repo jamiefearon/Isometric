@@ -1,5 +1,5 @@
 
 class Building
 
-  constructor: (@sprite, @width, @height) -> 
+  constructor: (@sprite, @width, @height, @id) -> 
 

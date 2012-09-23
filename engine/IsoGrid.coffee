@@ -139,15 +139,15 @@ class IsometricGrid
         ypos = (row + col) * (@tileHeight / 2) + (@height * @zoom) + @scrollPosition.y
         
         if (Math.round(xpos) + @tileWidth >= 0 and Math.round(ypos) + @tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height)
+          IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight)
           if (typeof @tileMap[row] isnt 'undefined' and typeof @tileMap[row][col] isnt 'undefined')
             if (@tileMap[row][col] instanceof Building)
               ypos -= (@tileMap[row][col].sprite.height * @zoom) - (@tileHeight)  
               xpos -= ((@tileMap[row][col].sprite.width * @zoom) / 2) - (@tileWidth / 2) 
               @tileMap[row][col].sprite.setPosition(xpos, ypos)
               @tileMap[row][col].sprite.draw()
-          else
-            IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight) 
-        
+         
+                       
 
        
   # TODO - fix later  

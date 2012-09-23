@@ -62,41 +62,48 @@ class UI
   displayBuildingSelectonDialog: (id) =>
     # make the setBuildingTileSet dialog visible
     $("#setBuildingTileSet").css("visibility","visible")
-    
-    # actions for ok and cancel buttons
-   
-    $("#cancel").unbind("click").click =>
+
+    flagNumber = id.substring(7,id.length)
+    buildingTileSet = undefined
+
+    $("#done").unbind("click").click =>
       $("#setBuildingTileSet").css("visibility","hidden")
-      
-    $("#ok").unbind("click").click =>
-      # get the number of the flag in question
-      flagNumber = id.substring(7,id.length)
-      
-      # get the framesPerBuilding and durationPerBuilding
-      
-      # convert the comma seperated list into an array then change all elements from strings into integers
-      framesPerBuilding = $("#framesPerBuilding").val().split(',')      
-      for i in [1..framesPerBuilding]
-        framesPerBuilding[i] = +framesPerBuilding[i]
-      
-      durationPerBuilding = $("#durationPerBuilding").val().split(',')      
-      for i in [1..durationPerBuilding]
-        durationPerBuilding[i] = +durationPerBuilding[i]
-      
-      
-      # create BuildingTileSet
-      buildingTileSet = new BuildingTileSet(assetManager.getAsset($("#buildingTileSetName").val()), $("#tileWidth").val(), $("#tileHeight").val(), $("#numberOfBuildings").val(), framesPerBuilding, durationPerBuilding)
-      
-      # save the tilemap into mapData
+
       if mapData.buildingTileSets is undefined
         mapData.buildingTileSets = new Array()
         mapData.buildingTileSets[flagNumber] = buildingTileSet
       else
         mapData.buildingTileSets[flagNumber] = buildingTileSet
-        
-      # load the building tileset data into the selection toolbar and hide the current dialog
-      @loadBuildingData(flagNumber)
-      $("#setBuildingTileSet").css("visibility","hidden")
+      
+    $("#createbuilding").unbind("click").click =>
+      
+      # get all the necessary variables from the user
+      tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val())
+      tOffsetX = parseInt($("#offsetX").val())
+      tOffsetY = parseInt($("#offsetY").val())
+      tPixelWidth = parseInt($("#pixeltileWidth").val())
+      tPixelHeight = parseInt($("#pixeltileHeight").val())
+      tWidth = parseInt($("#pixeltileWidth").val())
+      tHeight = parseInt($("#pixeltileHeight").val())
+      tFrames = parseInt($("#frames").val())
+      tDuration = parseInt($("#duration").val())
+      tId = parseInt($("#id").val())
+
+      # create BuildingTileSet if one has not yet been created 
+      # TODO - make this logic more elegant
+      if mapData.buildingTileSets isnt undefined and buildingTileSet is undefined
+        buildingTileSet = mapData.buildingTileSets[flagNumber] ? new BuildingTileSet(tSpritesheet)
+      else if buildingTileSet is undefined
+        buildingTileSet = new BuildingTileSet(tSpritesheet)
+
+      # create the sprite
+      tSprite = new Sprite(spritesheet: tSpritesheet, width: @tPixelWidth, height: tPixelHeight, offsetX: tOffsetX, offsetY: tOffsetY, frames: tFrames, duration: tDuration)
+
+      # create the building from the sprite
+      tBuilding = new Building(tSprite, tWidth, tHeight, tId)
+
+      # push building into buildingTileset
+      buildingTileSet.buildings.push(tBuilding)
     
     
   
@@ -116,16 +123,15 @@ class UI
     # make sure the toolbar is empty from the last load
     $("#buildingSelectionToolbar ul").empty()
     
-    
     # fislty get filename from spritesheet.src (i.e. convert from url to just *****.png)
     spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src
     index = spriteMap.lastIndexOf("/") + 1
     filename = spriteMap.substr(index)
     
     # now load the icons
-    for i in [0..mapData.buildingTileSets[flagNumber].numberOfBuildings - 1]
+    for i in [0..mapData.buildingTileSets[flagNumber].buildings.length - 1]
       $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}' class='#{flagNumber}'></li>")
-      $("#buildingIcon#{i}").css("background", "url(image/#{filename}) 0 -#{i*60}px no-repeat")
+      $("#buildingIcon#{i}").css("background", "url(image/#{filename}) -#{mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetX}px -#{mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetY}px no-repeat")
       $("#buildingIcon#{i}").click (e) =>
         console.log(e.target.id)
 

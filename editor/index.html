@@ -7,10 +7,10 @@
         <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
         <script type="text/javascript" src="lib/jquery.jcarousel.min.js"></script>
         <script type="text/javascript" src="lib/animframe.js"></script>
-	<script type="text/javascript" src="lib/PxLoader.js"></script>
+		<script type="text/javascript" src="lib/PxLoader.js"></script>
         <script type="text/javascript" src="lib/PxLoaderImage.js"></script>
         <script type="text/javascript" src="lib/app.js"></script>
-	<script type="text/javascript" src="lib/jquery.rightClick.js"></script>
+		<script type="text/javascript" src="lib/jquery.rightClick.js"></script>
     </head>
     <body>
         <!-- canvas container -->
@@ -48,32 +48,59 @@
 	    <div>
 	      <h2>Tileset name</h2>
 	      <input id="buildingTileSetName" type="text">
+	      <input class="button" id="load" type="submit" value="Load">
+	    </div>
+	    <h2>Create building</h2>
+	    <div>
+	      <h2>Start Frame</h2>
+	      <p>
+	      	<p>OffsetX</p>
+	      	<input id="offsetX" type="text">
+	      </p>
+	      <p>
+	      	<p>OffsetY</p>
+	      	<input id="offsetY" type="text">
+	      </p>
 	    </div>
 	    <div>
-	      <h2>Number of buildings</h2>
-	      <input id="numberOfBuildings" type="text">
+	      <h2>Pixel Dimensions<h2>
+	      <p>
+	      	<p>Tile width</p>
+	      	<input id="pixeltileWidth" type="text">
+	  	  </p>
+	  	  <p>
+	      	<p>Tile height</p>
+	      	<input id="pixeltileHeight" type="text">
+	      </p>
+		</div>
+	    <div>
+	      <h2>Tile Dimensions<h2>
+	      <p>
+	      	<p>Tile width</p>
+	      	<input id="tileWidth" type="text">
+	      </p>
+	      <p>
+	      	<p>Tile height</p>
+	      	<input id="tileHeight" type="text">
+	      </p>
 	    </div>
 	    <div>
-	      <h2>Tile width</h2>
-	      <input id="tileWidth" type="text">
-	      <h2>Tile height</h2>
-	      <input id="tileHeight" type="text">
+	      <h2>Number of Frames</h2>
+	      <input id="frames" type="text">
 	    </div>
 	    <div>
-	      <h2>Frames per building (CSV)</h2>
-	      <p>Default is 1 per building</p>
-	      <input id="framesPerBuilding" type="text">
+	      <h2>Duration</h2>
+	      <input id="duration" type="text">
 	    </div>
 	    <div>
-	      <h2>Duration per building (CSV)</h2>
-	      <p>Default is zero per building</p>
-	      <input id="durationPerBuilding" type="text">
+	      <h2>ID (name)</h2>
+	      <input id="id" type="text">
 	    </div>
 	    <div>
-		<p>
-		    <input class="button" id="ok" type="submit" value="Ok">
-		    <input class="button" id="cancel" type="submit" value="Cancel">
-		</p>
+		    <input class="button" id="createbuilding" type="submit" value="Create Building">
+	    </div>
+	    <div>
+	    	<input class="button" id="done" type="submit" value="Done">
 	    </div>
 	</div>
 

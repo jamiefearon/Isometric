@@ -130,11 +130,9 @@ p {
 
 /* Right click menu for building tile selection */
 #setBuildingTileSet {
-    height: 500px;
-    left: 50%; 
-    bottom: 50%;
-    margin: -200px 0 0 -200px;
-    position: relative;
+    height: 800px;
+    top: 10px;
+    position: absolute;
     width: 400px;
     opacity: 0.7;
     visibility: hidden;

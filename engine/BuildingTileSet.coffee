@@ -3,12 +3,11 @@ class BuildingTileSet
 
   constructor: (@spritesheet)  ->
     
-    # an array containing all building sprites
-    # TODO: remove this and change to an array of buildings
+    # an array containing all building data to recreate a building
     @buildings = new Array()
       
 
-  # Returns a building based on line number in sprite sheet
+  # Returns a building data based on line number in sprite sheet
   getBuilding: (lineNumber) =>
     return @buildings[lineNumber]
     

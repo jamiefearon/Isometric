@@ -9,7 +9,9 @@ class UI
     , false
     
     # @toolSelect contains a string representing the selected tool
-    @toolSelect = null;
+    @toolSelect = null
+
+    @selectedBuilding = null
 
     # Current's zoom level
     @zoomLevel = 1;
@@ -83,8 +85,8 @@ class UI
       tOffsetY = parseInt($("#offsetY").val())
       tPixelWidth = parseInt($("#pixeltileWidth").val())
       tPixelHeight = parseInt($("#pixeltileHeight").val())
-      tWidth = parseInt($("#pixeltileWidth").val())
-      tHeight = parseInt($("#pixeltileHeight").val())
+      tWidth = parseInt($("#tileWidth").val())
+      tHeight = parseInt($("#tileHeight").val())
       tFrames = parseInt($("#frames").val())
       tDuration = parseInt($("#duration").val())
       tId = parseInt($("#id").val())
@@ -96,14 +98,22 @@ class UI
       else if buildingTileSet is undefined
         buildingTileSet = new BuildingTileSet(tSpritesheet)
 
-      # create the sprite
-      tSprite = new Sprite(spritesheet: tSpritesheet, width: @tPixelWidth, height: tPixelHeight, offsetX: tOffsetX, offsetY: tOffsetY, frames: tFrames, duration: tDuration)
-
-      # create the building from the sprite
-      tBuilding = new Building(tSprite, tWidth, tHeight, tId)
-
+      # create an object to hold all the data needed to receate the building and its sprite
+      data = {
+        spritesheet: tSpritesheet,
+        pixelWidth: tPixelWidth,
+        pixelHeight: tPixelHeight,
+        offsetX: tOffsetX,
+        offsetY: tOffsetY,
+        frames: tFrames,
+        duration: tDuration,
+        width: tWidth,
+        height: tHeight,
+        id: tId
+      };
+  
       # push building into buildingTileset
-      buildingTileSet.buildings.push(tBuilding)
+      buildingTileSet.buildings.push(data)
     
     
   
@@ -129,16 +139,17 @@ class UI
     filename = spriteMap.substr(index)
     
     # now load the icons
+    that = this
     for i in [0..mapData.buildingTileSets[flagNumber].buildings.length - 1]
-      $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}' class='#{flagNumber}'></li>")
-      $("#buildingIcon#{i}").css("background", "url(image/#{filename}) -#{mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetX}px -#{mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetY}px no-repeat")
-      $("#buildingIcon#{i}").click (e) =>
-        console.log(e.target.id)
+      $("#buildingSelectionToolbar ul").append("<li id='buildingIcon#{i}' class='#{flagNumber}' data-iconNumber='#{i}' data-flagNumber='#{flagNumber}'></li>")
+      $("#buildingIcon#{i}").css("background", "url(image/#{filename}) -#{mapData.buildingTileSets[flagNumber].buildings[i].offsetX}px -#{mapData.buildingTileSets[flagNumber].buildings[i].offsetY}px no-repeat")
+      $("#buildingIcon#{i}").click (e) ->
+        that.selectedBuilding = mapData.buildingTileSets[parseInt($(this).attr("data-flagNumber"))].buildings[parseInt($(this).attr("data-iconNumber"))]
 
     # resize any relevent css values of li and buildingSelectionToolbar
-    $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].tileWidth}px")
-    $("#buildingSelectionToolbar li").css('height', "#{mapData.buildingTileSets[flagNumber].tileHeight}px")
-    $("#buildingSelectionToolbar").css('height', "#{mapData.buildingTileSets[flagNumber].tileHeight}px")
+    $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].pixelWidth}px")
+    $("#buildingSelectionToolbar li").css('height', "#{mapData.buildingTileSets[flagNumber].pixelHeight}px")
+    $("#buildingSelectionToolbar").css('height', "#{mapData.buildingTileSets[flagNumber].pixelHeight}px")
   
     
     
@@ -147,12 +158,20 @@ class UI
   # 
    
   UIMouseDown: (e) =>
-    
+    x = e.clientX
+    y = e.clientY
+
     # the id of the clicked on element
     idClickEle = e.target.getAttribute('id')
     
-    # if the element clicked is canvas just ignore and return
-    if idClickEle is 'canvas' then return
+    # if the element clicked is canvas
+    if idClickEle is 'canvas'
+
+      # place building
+      if @selectedBuilding isnt null
+        console.log('sel bil = ' + @selectedBuilding.width)
+        game.grid.placeBuilding(x, y, @selectedBuilding)
+        
     
     
     # detect if an icon-set has been clicked on
@@ -195,4 +214,3 @@ class UI
         @toolSelect = 'zoomOut'
         @zoomLevel= @zoomLevel / 2
         game.grid.setZoom(@zoomLevel)
-    

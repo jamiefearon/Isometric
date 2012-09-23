@@ -145,9 +145,25 @@ class IsometricGrid
               ypos -= (@tileMap[row][col].sprite.height * @zoom) - (@tileHeight)  
               xpos -= ((@tileMap[row][col].sprite.width * @zoom) / 2) - (@tileWidth / 2) 
               @tileMap[row][col].sprite.setPosition(xpos, ypos)
-              @tileMap[row][col].sprite.draw()
+              if @tileMap[row][col].sprite.duration is 0
+                @tileMap[row][col].sprite.draw()
+              else
+                @tileMap[row][col].sprite.animate()
          
-                       
+   
+  # Puts a new building into the grid at postion x,y
+  placeBuilding: (x, y, data) =>
+    pos = @translatePixelsToMatrix(x, y)
+    # create the sprite
+    sprite = new Sprite(spritesheet: data.spritesheet, width: data.pixelWidth, height: data.pixelHeight, offsetX: data.offsetX, offsetY: data.offsetY, frames: data.frames, duration: data.duration)
+    # create the building from the sprite
+    obj = new Building(sprite, data.width, data.height, data.id)
+
+    for i in [(pos.row + 1) - obj.width..pos.row]
+      for j in [(pos.col + 1) - obj.height..pos.col]
+        if (@tileMap[i] == undefined) then @tileMap[i] = []
+        if (i is pos.row and j is pos.col) then @tileMap[i][j] = obj
+
 
        
   # TODO - fix later  
@@ -178,20 +194,13 @@ class IsometricGrid
     @dragHelper.active = false
     
   handleMouseDown: (e) =>
-    e.preventDefault()
-    x = e.clientX
-    y = e.clientY
-    @dragHelper.active = true
-    @dragHelper.x = x - @scrollPosition.x  
-    @dragHelper.y = y - @scrollPosition.y
-    
-    pos = @translatePixelsToMatrix(x, y)
-    obj = new Building(new Sprite(spritesheet: assetManager.getAsset('cinema')), 2, 2)
-
-    for i in [(pos.row + 1) - obj.width..pos.row]
-      for j in [(pos.col + 1) - obj.height..pos.col]
-        if (@tileMap[i] == undefined) then @tileMap[i] = []
-        if (i is pos.row and j is pos.col) then @tileMap[i][j] = obj
+      e.preventDefault()
+      x = e.clientX
+      y = e.clientY
+      @dragHelper.active = true
+      @dragHelper.x = x - @scrollPosition.x  
+      @dragHelper.y = y - @scrollPosition.y
+     
 
         
         

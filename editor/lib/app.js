@@ -91,6 +91,8 @@
 
       this.handleKeyDown = __bind(this.handleKeyDown, this);
 
+      this.placeBuilding = __bind(this.placeBuilding, this);
+
       this.setZoom = __bind(this.setZoom, this);
 
       var _ref, _ref1, _ref2, _ref3,
@@ -215,13 +217,51 @@
                   ypos -= (this.tileMap[row][col].sprite.height * this.zoom) - this.tileHeight;
                   xpos -= ((this.tileMap[row][col].sprite.width * this.zoom) / 2) - (this.tileWidth / 2);
                   this.tileMap[row][col].sprite.setPosition(xpos, ypos);
-                  _results1.push(this.tileMap[row][col].sprite.draw());
+                  if (this.tileMap[row][col].sprite.duration === 0) {
+                    _results1.push(this.tileMap[row][col].sprite.draw());
+                  } else {
+                    _results1.push(this.tileMap[row][col].sprite.animate());
+                  }
                 } else {
                   _results1.push(void 0);
                 }
               } else {
                 _results1.push(void 0);
               }
+            } else {
+              _results1.push(void 0);
+            }
+          }
+          return _results1;
+        }).call(this));
+      }
+      return _results;
+    };
+
+    IsometricGrid.prototype.placeBuilding = function(x, y, data) {
+      var i, j, obj, pos, sprite, _i, _ref, _ref1, _results;
+      pos = this.translatePixelsToMatrix(x, y);
+      sprite = new Sprite({
+        spritesheet: data.spritesheet,
+        width: data.pixelWidth,
+        height: data.pixelHeight,
+        offsetX: data.offsetX,
+        offsetY: data.offsetY,
+        frames: data.frames,
+        duration: data.duration
+      });
+      obj = new Building(sprite, data.width, data.height, data.id);
+      _results = [];
+      for (i = _i = _ref = (pos.row + 1) - obj.width, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+        _results.push((function() {
+          var _j, _ref2, _ref3, _results1;
+          _results1 = [];
+          for (j = _j = _ref2 = (pos.col + 1) - obj.height, _ref3 = pos.col; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+            if (this.tileMap[i] === void 0) {
+              this.tileMap[i] = [];
+            }
+            if (i === pos.row && j === pos.col) {
+              _results1.push(this.tileMap[i][j] = obj);
             } else {
               _results1.push(void 0);
             }
@@ -266,36 +306,13 @@
     };
 
     IsometricGrid.prototype.handleMouseDown = function(e) {
-      var i, j, obj, pos, x, y, _i, _ref, _ref1, _results;
+      var x, y;
       e.preventDefault();
       x = e.clientX;
       y = e.clientY;
       this.dragHelper.active = true;
       this.dragHelper.x = x - this.scrollPosition.x;
-      this.dragHelper.y = y - this.scrollPosition.y;
-      pos = this.translatePixelsToMatrix(x, y);
-      obj = new Building(new Sprite({
-        spritesheet: assetManager.getAsset('cinema')
-      }), 2, 2);
-      _results = [];
-      for (i = _i = _ref = (pos.row + 1) - obj.width, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
-        _results.push((function() {
-          var _j, _ref2, _ref3, _results1;
-          _results1 = [];
-          for (j = _j = _ref2 = (pos.col + 1) - obj.height, _ref3 = pos.col; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
-            if (this.tileMap[i] === void 0) {
-              this.tileMap[i] = [];
-            }
-            if (i === pos.row && j === pos.col) {
-              _results1.push(this.tileMap[i][j] = obj);
-            } else {
-              _results1.push(void 0);
-            }
-          }
-          return _results1;
-        }).call(this));
-      }
-      return _results;
+      return this.dragHelper.y = y - this.scrollPosition.y;
     };
 
     return IsometricGrid;
@@ -533,6 +550,7 @@
         }
       }, false);
       this.toolSelect = null;
+      this.selectedBuilding = null;
       this.zoomLevel = 1;
       this.buildingSelectionToolBarVisible = false;
       this.setupToolbar();
@@ -574,14 +592,14 @@
         }
       });
       return $("#createbuilding").unbind("click").click(function() {
-        var tBuilding, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSprite, tSpritesheet, tWidth, _ref;
+        var data, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSpritesheet, tWidth, _ref;
         tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val());
         tOffsetX = parseInt($("#offsetX").val());
         tOffsetY = parseInt($("#offsetY").val());
         tPixelWidth = parseInt($("#pixeltileWidth").val());
         tPixelHeight = parseInt($("#pixeltileHeight").val());
-        tWidth = parseInt($("#pixeltileWidth").val());
-        tHeight = parseInt($("#pixeltileHeight").val());
+        tWidth = parseInt($("#tileWidth").val());
+        tHeight = parseInt($("#tileHeight").val());
         tFrames = parseInt($("#frames").val());
         tDuration = parseInt($("#duration").val());
         tId = parseInt($("#id").val());
@@ -590,23 +608,24 @@
         } else if (buildingTileSet === void 0) {
           buildingTileSet = new BuildingTileSet(tSpritesheet);
         }
-        tSprite = new Sprite({
+        data = {
           spritesheet: tSpritesheet,
-          width: _this.tPixelWidth,
-          height: tPixelHeight,
+          pixelWidth: tPixelWidth,
+          pixelHeight: tPixelHeight,
           offsetX: tOffsetX,
           offsetY: tOffsetY,
           frames: tFrames,
-          duration: tDuration
-        });
-        tBuilding = new Building(tSprite, tWidth, tHeight, tId);
-        return buildingTileSet.buildings.push(tBuilding);
+          duration: tDuration,
+          width: tWidth,
+          height: tHeight,
+          id: tId
+        };
+        return buildingTileSet.buildings.push(data);
       });
     };
 
     UI.prototype.loadBuildingData = function(flagNumber) {
-      var buildingTileSet, filename, i, index, spriteMap, _i, _ref,
-        _this = this;
+      var buildingTileSet, filename, i, index, spriteMap, that, _i, _ref;
       if (mapData.buildingTileSets !== void 0 && mapData.buildingTileSets[flagNumber] !== void 0) {
         buildingTileSet = mapData.buildingTileSets[flagNumber];
       } else {
@@ -617,23 +636,29 @@
       spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src;
       index = spriteMap.lastIndexOf("/") + 1;
       filename = spriteMap.substr(index);
+      that = this;
       for (i = _i = 0, _ref = mapData.buildingTileSets[flagNumber].buildings.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-        $("#buildingSelectionToolbar ul").append("<li id='buildingIcon" + i + "' class='" + flagNumber + "'></li>");
-        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") -" + mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetX + "px -" + mapData.buildingTileSets[flagNumber].buildings[i].sprite.offsetY + "px no-repeat");
+        $("#buildingSelectionToolbar ul").append("<li id='buildingIcon" + i + "' class='" + flagNumber + "' data-iconNumber='" + i + "' data-flagNumber='" + flagNumber + "'></li>");
+        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") -" + mapData.buildingTileSets[flagNumber].buildings[i].offsetX + "px -" + mapData.buildingTileSets[flagNumber].buildings[i].offsetY + "px no-repeat");
         $("#buildingIcon" + i).click(function(e) {
-          return console.log(e.target.id);
+          return that.selectedBuilding = mapData.buildingTileSets[parseInt($(this).attr("data-flagNumber"))].buildings[parseInt($(this).attr("data-iconNumber"))];
         });
       }
-      $("#buildingSelectionToolbar li").css('width', "" + mapData.buildingTileSets[flagNumber].tileWidth + "px");
-      $("#buildingSelectionToolbar li").css('height', "" + mapData.buildingTileSets[flagNumber].tileHeight + "px");
-      return $("#buildingSelectionToolbar").css('height', "" + mapData.buildingTileSets[flagNumber].tileHeight + "px");
+      $("#buildingSelectionToolbar li").css('width', "" + mapData.buildingTileSets[flagNumber].pixelWidth + "px");
+      $("#buildingSelectionToolbar li").css('height', "" + mapData.buildingTileSets[flagNumber].pixelHeight + "px");
+      return $("#buildingSelectionToolbar").css('height', "" + mapData.buildingTileSets[flagNumber].pixelHeight + "px");
     };
 
     UI.prototype.UIMouseDown = function(e) {
-      var idClickEle;
+      var idClickEle, x, y;
+      x = e.clientX;
+      y = e.clientY;
       idClickEle = e.target.getAttribute('id');
       if (idClickEle === 'canvas') {
-        return;
+        if (this.selectedBuilding !== null) {
+          console.log('sel bil = ' + this.selectedBuilding.width);
+          game.grid.placeBuilding(x, y, this.selectedBuilding);
+        }
       }
       if (idClickEle.indexOf("iconSet") !== -1) {
         if (this.buildingSelectionToolBarVisible === false) {

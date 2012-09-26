@@ -59,6 +59,9 @@ class IsometricGrid
       Z: 90,
       X: 88,
       R: 82
+
+      #TEMP
+    @colourGrid(0,0,'fade')
       
     
     
@@ -99,7 +102,7 @@ class IsometricGrid
       col: col
       
   
-  # set zoom level
+  # Set zoom level
   setZoom: (value) =>
     @zoom = value
 
@@ -139,7 +142,12 @@ class IsometricGrid
         ypos = (row + col) * (@tileHeight / 2) + (@height * @zoom) + @scrollPosition.y
         
         if (Math.round(xpos) + @tileWidth >= 0 and Math.round(ypos) + @tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height)
+          
+          IsometricGrid.renderer.context.save()
+          if (@tileMap[row] != undefined and @tileMap[row][col] == 'fade') then IsometricGrid.renderer.context.globalAlpha = 0.5 
           IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight)
+          IsometricGrid.renderer.context.restore()
+
           if (typeof @tileMap[row] isnt 'undefined' and typeof @tileMap[row][col] isnt 'undefined')
             if (@tileMap[row][col] instanceof Building)
               ypos -= (@tileMap[row][col].sprite.height * @zoom) - (@tileHeight)  
@@ -158,11 +166,30 @@ class IsometricGrid
     sprite = new Sprite(spritesheet: data.spritesheet, width: data.pixelWidth, height: data.pixelHeight, offsetX: data.offsetX, offsetY: data.offsetY, frames: data.frames, duration: data.duration)
     # create the building from the sprite
     obj = new Building(sprite, data.width, data.height, data.id)
+    
+    if @checkIfTileIsFree(obj, pos.row, pos.col)
+      for i in [(pos.row + 1) - obj.width..pos.row] 
+        for j in [(pos.col + 1) - obj.height..pos.col]
+          if (@tileMap[i] == undefined) then @tileMap[i] = []
+          if (i is pos.row and j is pos.col)
+            @tileMap[i][j] = obj
+          else
+            @tileMap[i][j] = new BuildingPortion(obj.id)
 
-    for i in [(pos.row + 1) - obj.width..pos.row]
-      for j in [(pos.col + 1) - obj.height..pos.col]
-        if (@tileMap[i] == undefined) then @tileMap[i] = []
-        if (i is pos.row and j is pos.col) then @tileMap[i][j] = obj
+
+  # Returns true if a tile is free to be build on, otherwise returns false
+  checkIfTileIsFree: (obj, row, col) =>
+    for i in [(row + 1) - obj.width..row]
+      for j in [(col + 1) - obj.height..col]
+        if (@tileMap[i] != undefined and @tileMap[i][j] != undefined)
+          return false
+    return true
+
+  # Changes the color of a map grid square
+  colourGrid: (row,col,colour) =>
+    if (@tileMap[row] == undefined) then @tileMap[row] = []
+    @tileMap[row][col] = colour
+
 
 
        
@@ -201,7 +228,6 @@ class IsometricGrid
       @dragHelper.x = x - @scrollPosition.x  
       @dragHelper.y = y - @scrollPosition.y
      
-
         
         
         

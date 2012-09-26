@@ -18,7 +18,7 @@ init = =>
     loader = new PxLoader()
     assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1')
     assetManager.addAsset(loader.addImage('image/grass.png'), 'grass')
-    assetManager.addAsset(loader.addImage('image/dirt.png'), 'dirt')
+    assetManager.addAsset(loader.addImage('image/tree.png'), 'tree')
     assetManager.addAsset(loader.addImage('image/cinema.png'), 'cinema')
     
     loader.addCompletionListener =>

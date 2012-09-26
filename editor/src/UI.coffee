@@ -145,11 +145,10 @@ class UI
       $("#buildingIcon#{i}").css("background", "url(image/#{filename}) -#{mapData.buildingTileSets[flagNumber].buildings[i].offsetX}px -#{mapData.buildingTileSets[flagNumber].buildings[i].offsetY}px no-repeat")
       $("#buildingIcon#{i}").click (e) ->
         that.selectedBuilding = mapData.buildingTileSets[parseInt($(this).attr("data-flagNumber"))].buildings[parseInt($(this).attr("data-iconNumber"))]
-
-    # resize any relevent css values of li and buildingSelectionToolbar
-    $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].pixelWidth}px")
-    $("#buildingSelectionToolbar li").css('height', "#{mapData.buildingTileSets[flagNumber].pixelHeight}px")
-    $("#buildingSelectionToolbar").css('height', "#{mapData.buildingTileSets[flagNumber].pixelHeight}px")
+      # resize any relevent css values of li and buildingSelectionToolbar TODO FIX THIS GODDAMMIT!!!!
+      $("#buildingSelectionToolbar li").css('width', "#{mapData.buildingTileSets[flagNumber].buildings[i].pixelWidth}px")
+      $("#buildingSelectionToolbar li").css('height', "#{mapData.buildingTileSets[flagNumber].buildings[i].pixelHeight}px")
+      $("#buildingSelectionToolbar").css('height', "#{mapData.buildingTileSets[flagNumber].buildings[i].pixelHeight}px")
   
     
     
@@ -171,7 +170,6 @@ class UI
       if @selectedBuilding isnt null
         console.log('sel bil = ' + @selectedBuilding.width)
         game.grid.placeBuilding(x, y, @selectedBuilding)
-        
     
     
     # detect if an icon-set has been clicked on

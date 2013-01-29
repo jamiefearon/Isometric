@@ -19,7 +19,9 @@ class Game extends IsoGame
     
     defaultTile = new Sprite(spritesheet: assetManager.getAsset(tile))
     @grid = new IsometricGrid(width: numberRows, height: numberCols, defaultTile: defaultTile)
-    
+
+    spritesheet = assetManager.getAsset 'sprite1'
+
     @animloop()
 
 
@@ -27,7 +29,7 @@ class Game extends IsoGame
     super
     
     @renderer.clear('#FFFFFF')
-    
+
     @grid.draw()
     
     # Call @displayFps() at the end of animloop to acuatly calculate the Fps

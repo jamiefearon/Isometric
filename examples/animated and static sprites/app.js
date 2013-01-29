@@ -38,6 +38,7 @@
       this.clear = __bind(this.clear, this);
       this.canvas = document.createElement('canvas');
       $('#container').append(this.canvas);
+      $('#container canvas')[0].id = 'canvas';
       this.context = this.canvas.getContext("2d");
     }
 
@@ -77,6 +78,14 @@
 
       this.handleKeyDown = __bind(this.handleKeyDown, this);
 
+      this.colourGrid = __bind(this.colourGrid, this);
+
+      this.checkIfTileIsFree = __bind(this.checkIfTileIsFree, this);
+
+      this.placeBuilding = __bind(this.placeBuilding, this);
+
+      this.setZoom = __bind(this.setZoom, this);
+
       var _ref, _ref1, _ref2, _ref3,
         _this = this;
       this.tileMap = (_ref = parameters.tileMap) != null ? _ref : [];
@@ -91,6 +100,11 @@
         x: 0,
         y: 0
       };
+      this.zoom = 1;
+      this.tileWidth = this.defaultTile.width * this.zoom;
+      this.tileHeight = this.defaultTile.height * this.zoom;
+      this.scrollPosition.y -= this.height * this.zoom + this.scrollPosition.y;
+      this.scrollPosition.x -= this.width * this.zoom + this.scrollPosition.x;
       this.dragHelper = {
         active: false,
         x: 0,
@@ -109,25 +123,32 @@
         X: 88,
         R: 82
       };
+      this.colourGrid(0, 0, 'fade');
       window.addEventListener('keydown', function(e) {
         return _this.handleKeyDown(e);
       }, false);
       window.addEventListener('mousedown', function(e) {
-        return _this.handleMouseDown(e);
+        if (e.target.id === 'canvas') {
+          return _this.handleMouseDown(e);
+        }
       }, false);
       window.addEventListener('mousemove', function(e) {
-        return _this.handleDrag(e);
+        if (e.target.id === 'canvas') {
+          return _this.handleDrag(e);
+        }
       }, false);
       window.addEventListener('mouseup', function(e) {
-        return _this.handleMouseUp(e);
+        if (e.target.id === 'canvas') {
+          return _this.handleMouseUp(e);
+        }
       }, false);
     }
 
     IsometricGrid.prototype.translatePixelsToMatrix = function(x, y) {
       var col, gridOffsetX, gridOffsetY, row;
-      gridOffsetY = this.height + this.scrollPosition.y;
-      gridOffsetX = this.width;
-      gridOffsetX += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2) + this.scrollPosition.x;
+      gridOffsetY = this.height * this.zoom + this.scrollPosition.y;
+      gridOffsetX = this.width * this.zoom;
+      gridOffsetX += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth * this.zoom / 2) + this.scrollPosition.x;
       col = (2 * (y - gridOffsetY) - x + gridOffsetX) / 2;
       row = x + col - gridOffsetX - this.tileHeight;
       col = Math.round(col / this.tileHeight);
@@ -138,8 +159,14 @@
       };
     };
 
+    IsometricGrid.prototype.setZoom = function(value) {
+      this.zoom = value;
+      this.tileWidth = this.defaultTile.width * this.zoom;
+      return this.tileHeight = this.defaultTile.height * this.zoom;
+    };
+
     IsometricGrid.prototype.draw = function() {
-      var col, colCount, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, xpos, ypos, _i, _results;
+      var col, colCount, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, xpos, ypos, _i, _ref, _results;
       pos_TL = this.translatePixelsToMatrix(1, 1);
       pos_BL = this.translatePixelsToMatrix(1, IsometricGrid.renderer.canvas.height);
       pos_TR = this.translatePixelsToMatrix(IsometricGrid.renderer.canvas.width, 1);
@@ -167,16 +194,37 @@
         $("#colEnd").html(colCount);
       }
       _results = [];
-      for (row = _i = startRow; startRow <= rowCount ? _i <= rowCount : _i >= rowCount; row = startRow <= rowCount ? ++_i : --_i) {
+      for (row = _i = startRow, _ref = rowCount - 1; startRow <= _ref ? _i <= _ref : _i >= _ref; row = startRow <= _ref ? ++_i : --_i) {
         _results.push((function() {
-          var _j, _results1;
+          var _j, _ref1, _results1;
           _results1 = [];
-          for (col = _j = startCol; startCol <= colCount ? _j <= colCount : _j >= colCount; col = startCol <= colCount ? ++_j : --_j) {
-            xpos = (row - col) * this.tileHeight + this.width;
-            xpos += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2) + this.scrollPosition.x;
-            ypos = (row + col) * (this.tileHeight / 2) + this.height + this.scrollPosition.y;
+          for (col = _j = startCol, _ref1 = colCount - 1; startCol <= _ref1 ? _j <= _ref1 : _j >= _ref1; col = startCol <= _ref1 ? ++_j : --_j) {
+            xpos = (row - col) * this.tileHeight + (this.width * this.zoom);
+            xpos += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2 * this.zoom) + this.scrollPosition.x;
+            ypos = (row + col) * (this.tileHeight / 2) + (this.height * this.zoom) + this.scrollPosition.y;
             if (Math.round(xpos) + this.tileWidth >= 0 && Math.round(ypos) + this.tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height) {
-              _results1.push(IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight));
+              IsometricGrid.renderer.context.save();
+              if (this.tileMap[row] !== void 0 && this.tileMap[row][col] === 'fade') {
+                IsometricGrid.renderer.context.globalAlpha = 0.5;
+              }
+              IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight);
+              IsometricGrid.renderer.context.restore();
+              if (typeof this.tileMap[row] !== 'undefined' && typeof this.tileMap[row][col] !== 'undefined') {
+                if (this.tileMap[row][col] instanceof Building) {
+                  ypos -= (this.tileMap[row][col].sprite.height * this.zoom) - this.tileHeight;
+                  xpos -= ((this.tileMap[row][col].sprite.width * this.zoom) / 2) - (this.tileWidth / 2);
+                  this.tileMap[row][col].sprite.setPosition(xpos, ypos);
+                  if (this.tileMap[row][col].sprite.duration === 0) {
+                    _results1.push(this.tileMap[row][col].sprite.draw());
+                  } else {
+                    _results1.push(this.tileMap[row][col].sprite.animate());
+                  }
+                } else {
+                  _results1.push(void 0);
+                }
+              } else {
+                _results1.push(void 0);
+              }
             } else {
               _results1.push(void 0);
             }
@@ -185,6 +233,61 @@
         }).call(this));
       }
       return _results;
+    };
+
+    IsometricGrid.prototype.placeBuilding = function(x, y, data) {
+      var i, j, obj, pos, sprite, _i, _ref, _ref1, _results;
+      pos = this.translatePixelsToMatrix(x, y);
+      sprite = new Sprite({
+        spritesheet: data.spritesheet,
+        width: data.pixelWidth,
+        height: data.pixelHeight,
+        offsetX: data.offsetX,
+        offsetY: data.offsetY,
+        frames: data.frames,
+        duration: data.duration
+      });
+      obj = new Building(sprite, data.width, data.height, data.id);
+      if (this.checkIfTileIsFree(obj, pos.row, pos.col)) {
+        _results = [];
+        for (i = _i = _ref = (pos.row + 1) - obj.width, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+          _results.push((function() {
+            var _j, _ref2, _ref3, _results1;
+            _results1 = [];
+            for (j = _j = _ref2 = (pos.col + 1) - obj.height, _ref3 = pos.col; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+              if (this.tileMap[i] === void 0) {
+                this.tileMap[i] = [];
+              }
+              if (i === pos.row && j === pos.col) {
+                _results1.push(this.tileMap[i][j] = obj);
+              } else {
+                _results1.push(this.tileMap[i][j] = new BuildingPortion(obj.id));
+              }
+            }
+            return _results1;
+          }).call(this));
+        }
+        return _results;
+      }
+    };
+
+    IsometricGrid.prototype.checkIfTileIsFree = function(obj, row, col) {
+      var i, j, _i, _j, _ref, _ref1;
+      for (i = _i = _ref = (row + 1) - obj.width; _ref <= row ? _i <= row : _i >= row; i = _ref <= row ? ++_i : --_i) {
+        for (j = _j = _ref1 = (col + 1) - obj.height; _ref1 <= col ? _j <= col : _j >= col; j = _ref1 <= col ? ++_j : --_j) {
+          if (this.tileMap[i] !== void 0 && this.tileMap[i][j] !== void 0) {
+            return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    IsometricGrid.prototype.colourGrid = function(row, col, colour) {
+      if (this.tileMap[row] === void 0) {
+        this.tileMap[row] = [];
+      }
+      return this.tileMap[row][col] = colour;
     };
 
     IsometricGrid.prototype.handleKeyDown = function(e) {
@@ -210,8 +313,8 @@
       if (this.dragHelper.active) {
         x = e.clientX;
         y = e.clientY;
-        this.scrollPosition.x -= Math.round((this.dragHelper.x - x) / 28);
-        return this.scrollPosition.y -= Math.round((this.dragHelper.y - y) / 28);
+        this.scrollPosition.x = Math.round(x - this.dragHelper.x);
+        return this.scrollPosition.y = Math.round(y - this.dragHelper.y);
       }
     };
 
@@ -226,8 +329,8 @@
       x = e.clientX;
       y = e.clientY;
       this.dragHelper.active = true;
-      this.dragHelper.x = x;
-      return this.dragHelper.y = y;
+      this.dragHelper.x = x - this.scrollPosition.x;
+      return this.dragHelper.y = y - this.scrollPosition.y;
     };
 
     return IsometricGrid;
@@ -290,7 +393,7 @@
     };
 
     Sprite.prototype.draw = function() {
-      return Sprite.renderer.context.drawImage(this.spritesheet, this.offsetX, this.offsetY, this.width, this.height, this.posX, this.posY, this.width, this.height);
+      return Sprite.renderer.context.drawImage(this.spritesheet, this.offsetX, this.offsetY, this.width, this.height, this.posX, this.posY, this.width * game.grid.zoom, this.height * game.grid.zoom);
     };
 
     return Sprite;

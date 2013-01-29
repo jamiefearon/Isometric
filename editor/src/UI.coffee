@@ -79,6 +79,8 @@ class UI
       
     $("#createbuilding").unbind("click").click =>
       
+      ###
+
       # get all the necessary variables from the user
       tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val())
       tOffsetX = parseInt($("#offsetX").val())
@@ -90,6 +92,22 @@ class UI
       tFrames = parseInt($("#frames").val())
       tDuration = parseInt($("#duration").val())
       tId = parseInt($("#id").val())
+
+      ###
+
+      # TEMP
+      tSpritesheet = assetManager.getAsset('cinema')
+      tOffsetX = 0
+      tOffsetY = 0
+      tPixelWidth = 256
+      tPixelHeight = 200
+      tWidth = 2
+      tHeight = 2
+      tFrames = 1
+      tDuration = 0
+      tId = 'swhsj'
+      tdrawWidth = 3
+      tdrawHeight = 3
 
       # create BuildingTileSet if one has not yet been created 
       # TODO - make this logic more elegant
@@ -110,6 +128,8 @@ class UI
         width: tWidth,
         height: tHeight,
         id: tId
+        drawWidth: tdrawWidth
+        drawHeight: tdrawHeight
       };
   
       # push building into buildingTileset

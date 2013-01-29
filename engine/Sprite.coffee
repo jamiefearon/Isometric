@@ -22,7 +22,7 @@ class Sprite
     
     @currentTime = (new Date()).getTime()
     @ftime = @currentTime + (@duration / @frames)
-   
+    
     
   
   setPosition: (x, y) =>
@@ -53,8 +53,9 @@ class Sprite
         @currentFrame++
 
 
-  draw: =>
+  draw: () =>
     Sprite.renderer.context.drawImage(@spritesheet, @offsetX, @offsetY, @width, @height, @posX, @posY, @width* game.grid.zoom, @height* game.grid.zoom)
     # TODO - pass to the renderer draw(render) function renderer.draw(image)
-      
-      
+
+
+

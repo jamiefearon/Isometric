@@ -40,6 +40,12 @@ class IsometricGrid
     # Initially center the starting point horizontally and vertically
     @scrollPosition.y -= @height * @zoom + @scrollPosition.y
     @scrollPosition.x -= @width * @zoom + @scrollPosition.x
+
+    # Tile the mouse is currently hovering above
+    @mouseOverTile = null
+    @mouseOverTileRow = null
+    @mouseOverTileCol = null
+    
     
       
     @dragHelper = 
@@ -60,9 +66,7 @@ class IsometricGrid
       X: 88,
       R: 82
 
-      #TEMP
-    @colourGrid(0,0,'fade')
-      
+
     
     
     # TODO fix later
@@ -100,7 +104,7 @@ class IsometricGrid
     return {} =
       row: row
       col: col
-      
+
   
   # Set zoom level
   setZoom: (value) =>
@@ -134,29 +138,77 @@ class IsometricGrid
       $("#colStart").html(startRow)
       $("#rowEnd").html(rowCount)
       $("#colEnd").html(colCount)
-    
+      $("#row").html(@mouseOverTileRow) if @mouseOverTileRow isnt null
+      $("#col").html(@mouseOverTileCol) if @mouseOverTileCol isnt null
+      if @mouseOverTile isnt null
+        $("#arraySize").html(@mouseOverTile.buildings.length)
+
+        if @mouseOverTile.tilePropeties.occupied
+          $("#occupied").html('true')
+        else
+          $("#occupied").html('false')
+        
+      else
+        $("#arraySize").html('')
+        $("#occupied").html('')
+   
     for row in [startRow..rowCount - 1]
       for col in [startCol..colCount - 1]
         xpos = (row - col) * @tileHeight + (@width * @zoom)
         xpos += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth / 2 * @zoom) + @scrollPosition.x
         ypos = (row + col) * (@tileHeight / 2) + (@height * @zoom) + @scrollPosition.y
+
+        # save these positions to use later to draw the clip dimond
+        startX = xpos
+        startY = ypos
         
         if (Math.round(xpos) + @tileWidth >= 0 and Math.round(ypos) + @tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height)
           
-          IsometricGrid.renderer.context.save()
-          if (@tileMap[row] != undefined and @tileMap[row][col] == 'fade') then IsometricGrid.renderer.context.globalAlpha = 0.5 
+          # Draw the defaultTile
           IsometricGrid.renderer.context.drawImage(@defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), @tileWidth, @tileHeight)
-          IsometricGrid.renderer.context.restore()
-
+          meow = 1
+          # Draw a building 
           if (typeof @tileMap[row] isnt 'undefined' and typeof @tileMap[row][col] isnt 'undefined')
-            if (@tileMap[row][col] instanceof Building)
-              ypos -= (@tileMap[row][col].sprite.height * @zoom) - (@tileHeight)  
-              xpos -= ((@tileMap[row][col].sprite.width * @zoom) / 2) - (@tileWidth / 2) 
-              @tileMap[row][col].sprite.setPosition(xpos, ypos)
-              if @tileMap[row][col].sprite.duration is 0
-                @tileMap[row][col].sprite.draw()
-              else
-                @tileMap[row][col].sprite.animate()
+            if @isArray(@tileMap[row][col].buildings)
+              # set the starting position of the clip at the bottom most moved by section amount
+              startX += @tileWidth * 0.5 
+              startY += @tileHeight
+              for i in [0..@tileMap[row][col].buildings.length - 1]  # loop through each item in the tile and draw it (should already be z ordered)
+               
+                buildingPosition = @getBuildingLocation(@tileMap[row][col].buildings[i]) 
+                @tileMap[row][col].buildings[i].sprite.setPosition(buildingPosition.x, buildingPosition.y)
+              
+                IsometricGrid.renderer.context.save()
+                #IsometricGrid.renderer.context.strokeStyle = "transparent"
+                IsometricGrid.renderer.context.strokeStyle = "red"
+                IsometricGrid.renderer.context.beginPath()
+                IsometricGrid.renderer.context.moveTo(startX,startY)
+                IsometricGrid.renderer.context.lineTo(startX + 0.5 * @tileWidth, startY - 0.5 * @tileHeight)
+                IsometricGrid.renderer.context.lineTo(startX, startY - @tileHeight)
+                IsometricGrid.renderer.context.lineTo(startX - 0.5 * @tileWidth, startY - 0.5 * @tileHeight)
+                IsometricGrid.renderer.context.lineTo(startX, startY)
+                IsometricGrid.renderer.context.stroke()
+                IsometricGrid.renderer.context.clip()
+              
+                #if @tileMap[row][col][i].sprite.duration is 0
+                @tileMap[row][col].buildings[i].sprite.draw() #if meow == 2
+                #else
+                #  @tileMap[row][col][i].sprite.animate()
+              
+                IsometricGrid.renderer.context.restore()
+              
+              
+
+
+  # Returns the position of where a building is located
+  getBuildingLocation: (building) =>
+    xpos = (building.row - building.col) * @tileHeight + (@width * @zoom)
+    xpos += (IsometricGrid.renderer.canvas.width / 2) - (@tileWidth / 2 * @zoom) + @scrollPosition.x
+    ypos = (building.row + building.col) * (@tileHeight / 2) + (@height * @zoom) + @scrollPosition.y
+    ypos -= (building.sprite.height * @zoom) - (@tileHeight)
+    xpos -= ((building.sprite.width * @zoom) / 2) - (@tileWidth / 2) 
+    return {x: xpos , y: ypos}
+
          
    
   # Puts a new building into the grid at postion x,y
@@ -165,32 +217,57 @@ class IsometricGrid
     # create the sprite
     sprite = new Sprite(spritesheet: data.spritesheet, width: data.pixelWidth, height: data.pixelHeight, offsetX: data.offsetX, offsetY: data.offsetY, frames: data.frames, duration: data.duration)
     # create the building from the sprite
-    obj = new Building(sprite, data.width, data.height, data.id)
-    
+    obj = new Building(sprite, data.width, data.height, data.id, data.drawWidth, data.drawHeight)
+
+    ###
+    TODO:
+    Change the array system to this:
+    @tileMap[i][j] = {buildings : [], tilePropeties : {} }
+
+    then to push new buildings, use:
+    @tileMap[i][j].buildings.push()
+
+    and to add new tileProperties, use:
+    @tileMap[i][j].tilePropeties["occupied"] = true
+
+    ###
     if @checkIfTileIsFree(obj, pos.row, pos.col)
-      for i in [(pos.row + 1) - obj.width..pos.row] 
-        for j in [(pos.col + 1) - obj.height..pos.col]
+      for i in [(pos.row + 1) - obj.drawWidth..pos.row] 
+        for j in [(pos.col + 1) - obj.drawHeight..pos.col]
           if (@tileMap[i] == undefined) then @tileMap[i] = []
-          if (i is pos.row and j is pos.col)
-            @tileMap[i][j] = obj
-          else
-            @tileMap[i][j] = new BuildingPortion(obj.id)
+          if (i is pos.row and j is pos.col)  # This will be the bottom corner of the building where the actual building will be placed
+            if @tileMap[i][j] is undefined then @tileMap[i][j] = {buildings : [], tilePropeties : {} }
+            obj.row = i
+            obj.col = j
+            obj.z = i + j
+            @tileMap[i][j].buildings.push(obj)
+            @tileMap[i][j].buildings.sort(@sortZ)
+            @tileMap[i][j].tilePropeties["occupied"] = true
+            console.log 'one'
+          else  # Place a building portion here, a reference to the actual building
+            console.log 'two'
+            if @tileMap[i][j] is undefined then @tileMap[i][j] = {buildings : [], tilePropeties : {} }
+            @tileMap[i][j].buildings.push(new BuildingPortion(obj, pos.row, pos.col, pos.col + pos.row))
+            @tileMap[i][j].buildings.sort(@sortZ)
+            
+            console.log 'Object Height = ', obj.height
+            console.log 'Object DrawHeight = ', obj.drawHeight
+            console.log 'pos.row  = ', pos.row
+            console.log 'pos.col = ', pos.col
+            
+            @tileMap[i][j].tilePropeties["occupied"] = true if Math.abs(i - pos.row) < obj.height && Math.abs(j - pos.col) < obj.width
+
+
 
 
   # Returns true if a tile is free to be build on, otherwise returns false
   checkIfTileIsFree: (obj, row, col) =>
+    
     for i in [(row + 1) - obj.width..row]
       for j in [(col + 1) - obj.height..col]
         if (@tileMap[i] != undefined and @tileMap[i][j] != undefined)
-          return false
+          return false if @tileMap[i][j].tilePropeties.occupied == true
     return true
-
-  # Changes the color of a map grid square
-  colourGrid: (row,col,colour) =>
-    if (@tileMap[row] == undefined) then @tileMap[row] = []
-    @tileMap[row][col] = colour
-
-
 
        
   # TODO - fix later  
@@ -204,7 +281,7 @@ class IsometricGrid
         @scrollPosition.x -= 20
       when @Keys.RIGHT, @Keys.D
         @scrollPosition.x += 20
- 		
+    
    
    
   handleDrag: (e) =>
@@ -214,7 +291,11 @@ class IsometricGrid
       y = e.clientY
       @scrollPosition.x = Math.round((x - @dragHelper.x))
       @scrollPosition.y = Math.round((y - @dragHelper.y))
-
+    else # mouse is not dragging just moving
+      # Set mouseOverTile to the current tile
+      tile = @translatePixelsToMatrix(e.clientX, e.clientY)
+      if (typeof @tileMap[tile.row] isnt 'undefined' and typeof @tileMap[tile.row][tile.col] isnt 'undefined')
+        @mouseOverTile = @tileMap[tile.row][tile.col]
 
   handleMouseUp: (e) =>
     e.preventDefault()
@@ -228,10 +309,17 @@ class IsometricGrid
       @dragHelper.x = x - @scrollPosition.x  
       @dragHelper.y = y - @scrollPosition.y
      
-        
-        
-        
-        
+  # returns true if an object is an array
+  isArray: (obj) =>
+    return Object.prototype.toString.call(obj) is '[object Array]'
+
+  # sorts an array based on the z values of its members
+  sortZ: (a, b) =>
+    if (a.z < b.z)
+      return -1
+    if (a.z > b.z)
+      return 1
+    return 0
         
         
         

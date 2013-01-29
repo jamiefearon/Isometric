@@ -67,11 +67,16 @@
 
   Building = (function() {
 
-    function Building(sprite, width, height, id) {
+    function Building(sprite, width, height, id, drawWidth, drawHeight, row, col, z) {
       this.sprite = sprite;
       this.width = width;
       this.height = height;
       this.id = id;
+      this.drawWidth = drawWidth;
+      this.drawHeight = drawHeight;
+      this.row = row;
+      this.col = col;
+      this.z = z;
     }
 
     return Building;
@@ -80,8 +85,12 @@
 
   BuildingPortion = (function() {
 
-    function BuildingPortion(buildingTypeId) {
-      this.buildingTypeId = buildingTypeId;
+    function BuildingPortion(building, row, col, z) {
+      this.building = building;
+      this.row = row;
+      this.col = col;
+      this.z = z;
+      this.sprite = this.building.sprite;
     }
 
     return BuildingPortion;
@@ -93,6 +102,10 @@
     IsometricGrid.renderer = null;
 
     function IsometricGrid(parameters) {
+      this.sortZ = __bind(this.sortZ, this);
+
+      this.isArray = __bind(this.isArray, this);
+
       this.handleMouseDown = __bind(this.handleMouseDown, this);
 
       this.handleMouseUp = __bind(this.handleMouseUp, this);
@@ -101,11 +114,11 @@
 
       this.handleKeyDown = __bind(this.handleKeyDown, this);
 
-      this.colourGrid = __bind(this.colourGrid, this);
-
       this.checkIfTileIsFree = __bind(this.checkIfTileIsFree, this);
 
       this.placeBuilding = __bind(this.placeBuilding, this);
+
+      this.getBuildingLocation = __bind(this.getBuildingLocation, this);
 
       this.setZoom = __bind(this.setZoom, this);
 
@@ -128,6 +141,9 @@
       this.tileHeight = this.defaultTile.height * this.zoom;
       this.scrollPosition.y -= this.height * this.zoom + this.scrollPosition.y;
       this.scrollPosition.x -= this.width * this.zoom + this.scrollPosition.x;
+      this.mouseOverTile = null;
+      this.mouseOverTileRow = null;
+      this.mouseOverTileCol = null;
       this.dragHelper = {
         active: false,
         x: 0,
@@ -146,7 +162,6 @@
         X: 88,
         R: 82
       };
-      this.colourGrid(0, 0, 'fade');
       window.addEventListener('keydown', function(e) {
         return _this.handleKeyDown(e);
       }, false);
@@ -189,7 +204,7 @@
     };
 
     IsometricGrid.prototype.draw = function() {
-      var col, colCount, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, xpos, ypos, _i, _ref, _results;
+      var buildingPosition, col, colCount, i, meow, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, startX, startY, xpos, ypos, _i, _ref, _results;
       pos_TL = this.translatePixelsToMatrix(1, 1);
       pos_BL = this.translatePixelsToMatrix(1, IsometricGrid.renderer.canvas.height);
       pos_TR = this.translatePixelsToMatrix(IsometricGrid.renderer.canvas.width, 1);
@@ -215,6 +230,23 @@
         $("#colStart").html(startRow);
         $("#rowEnd").html(rowCount);
         $("#colEnd").html(colCount);
+        if (this.mouseOverTileRow !== null) {
+          $("#row").html(this.mouseOverTileRow);
+        }
+        if (this.mouseOverTileCol !== null) {
+          $("#col").html(this.mouseOverTileCol);
+        }
+        if (this.mouseOverTile !== null) {
+          $("#arraySize").html(this.mouseOverTile.buildings.length);
+          if (this.mouseOverTile.tilePropeties.occupied) {
+            $("#occupied").html('true');
+          } else {
+            $("#occupied").html('false');
+          }
+        } else {
+          $("#arraySize").html('');
+          $("#occupied").html('');
+        }
       }
       _results = [];
       for (row = _i = startRow, _ref = rowCount - 1; startRow <= _ref ? _i <= _ref : _i >= _ref; row = startRow <= _ref ? ++_i : --_i) {
@@ -225,23 +257,36 @@
             xpos = (row - col) * this.tileHeight + (this.width * this.zoom);
             xpos += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2 * this.zoom) + this.scrollPosition.x;
             ypos = (row + col) * (this.tileHeight / 2) + (this.height * this.zoom) + this.scrollPosition.y;
+            startX = xpos;
+            startY = ypos;
             if (Math.round(xpos) + this.tileWidth >= 0 && Math.round(ypos) + this.tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height) {
-              IsometricGrid.renderer.context.save();
-              if (this.tileMap[row] !== void 0 && this.tileMap[row][col] === 'fade') {
-                IsometricGrid.renderer.context.globalAlpha = 0.5;
-              }
               IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight);
-              IsometricGrid.renderer.context.restore();
+              meow = 1;
               if (typeof this.tileMap[row] !== 'undefined' && typeof this.tileMap[row][col] !== 'undefined') {
-                if (this.tileMap[row][col] instanceof Building) {
-                  ypos -= (this.tileMap[row][col].sprite.height * this.zoom) - this.tileHeight;
-                  xpos -= ((this.tileMap[row][col].sprite.width * this.zoom) / 2) - (this.tileWidth / 2);
-                  this.tileMap[row][col].sprite.setPosition(xpos, ypos);
-                  if (this.tileMap[row][col].sprite.duration === 0) {
-                    _results1.push(this.tileMap[row][col].sprite.draw());
-                  } else {
-                    _results1.push(this.tileMap[row][col].sprite.animate());
-                  }
+                if (this.isArray(this.tileMap[row][col].buildings)) {
+                  startX += this.tileWidth * 0.5;
+                  startY += this.tileHeight;
+                  _results1.push((function() {
+                    var _k, _ref2, _results2;
+                    _results2 = [];
+                    for (i = _k = 0, _ref2 = this.tileMap[row][col].buildings.length - 1; 0 <= _ref2 ? _k <= _ref2 : _k >= _ref2; i = 0 <= _ref2 ? ++_k : --_k) {
+                      buildingPosition = this.getBuildingLocation(this.tileMap[row][col].buildings[i]);
+                      this.tileMap[row][col].buildings[i].sprite.setPosition(buildingPosition.x, buildingPosition.y);
+                      IsometricGrid.renderer.context.save();
+                      IsometricGrid.renderer.context.strokeStyle = "red";
+                      IsometricGrid.renderer.context.beginPath();
+                      IsometricGrid.renderer.context.moveTo(startX, startY);
+                      IsometricGrid.renderer.context.lineTo(startX + 0.5 * this.tileWidth, startY - 0.5 * this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(startX, startY - this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(startX - 0.5 * this.tileWidth, startY - 0.5 * this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(startX, startY);
+                      IsometricGrid.renderer.context.stroke();
+                      IsometricGrid.renderer.context.clip();
+                      this.tileMap[row][col].buildings[i].sprite.draw();
+                      _results2.push(IsometricGrid.renderer.context.restore());
+                    }
+                    return _results2;
+                  }).call(this));
                 } else {
                   _results1.push(void 0);
                 }
@@ -258,6 +303,19 @@
       return _results;
     };
 
+    IsometricGrid.prototype.getBuildingLocation = function(building) {
+      var xpos, ypos;
+      xpos = (building.row - building.col) * this.tileHeight + (this.width * this.zoom);
+      xpos += (IsometricGrid.renderer.canvas.width / 2) - (this.tileWidth / 2 * this.zoom) + this.scrollPosition.x;
+      ypos = (building.row + building.col) * (this.tileHeight / 2) + (this.height * this.zoom) + this.scrollPosition.y;
+      ypos -= (building.sprite.height * this.zoom) - this.tileHeight;
+      xpos -= ((building.sprite.width * this.zoom) / 2) - (this.tileWidth / 2);
+      return {
+        x: xpos,
+        y: ypos
+      };
+    };
+
     IsometricGrid.prototype.placeBuilding = function(x, y, data) {
       var i, j, obj, pos, sprite, _i, _ref, _ref1, _results;
       pos = this.translatePixelsToMatrix(x, y);
@@ -270,21 +328,62 @@
         frames: data.frames,
         duration: data.duration
       });
-      obj = new Building(sprite, data.width, data.height, data.id);
+      obj = new Building(sprite, data.width, data.height, data.id, data.drawWidth, data.drawHeight);
+      /*
+          TODO:
+          Change the array system to this:
+          @tileMap[i][j] = {buildings : [], tilePropeties : {} }
+      
+          then to push new buildings, use:
+          @tileMap[i][j].buildings.push()
+      
+          and to add new tileProperties, use:
+          @tileMap[i][j].tilePropeties["occupied"] = true
+      */
+
       if (this.checkIfTileIsFree(obj, pos.row, pos.col)) {
         _results = [];
-        for (i = _i = _ref = (pos.row + 1) - obj.width, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+        for (i = _i = _ref = (pos.row + 1) - obj.drawWidth, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
           _results.push((function() {
             var _j, _ref2, _ref3, _results1;
             _results1 = [];
-            for (j = _j = _ref2 = (pos.col + 1) - obj.height, _ref3 = pos.col; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
+            for (j = _j = _ref2 = (pos.col + 1) - obj.drawHeight, _ref3 = pos.col; _ref2 <= _ref3 ? _j <= _ref3 : _j >= _ref3; j = _ref2 <= _ref3 ? ++_j : --_j) {
               if (this.tileMap[i] === void 0) {
                 this.tileMap[i] = [];
               }
               if (i === pos.row && j === pos.col) {
-                _results1.push(this.tileMap[i][j] = obj);
+                if (this.tileMap[i][j] === void 0) {
+                  this.tileMap[i][j] = {
+                    buildings: [],
+                    tilePropeties: {}
+                  };
+                }
+                obj.row = i;
+                obj.col = j;
+                obj.z = i + j;
+                this.tileMap[i][j].buildings.push(obj);
+                this.tileMap[i][j].buildings.sort(this.sortZ);
+                this.tileMap[i][j].tilePropeties["occupied"] = true;
+                _results1.push(console.log('one'));
               } else {
-                _results1.push(this.tileMap[i][j] = new BuildingPortion(obj.id));
+                console.log('two');
+                if (this.tileMap[i][j] === void 0) {
+                  this.tileMap[i][j] = {
+                    buildings: [],
+                    tilePropeties: {}
+                  };
+                }
+                this.tileMap[i][j].buildings.push(new BuildingPortion(obj, pos.row, pos.col, pos.col + pos.row));
+                this.tileMap[i][j].buildings.sort(this.sortZ);
+                console.log('Object Height = ', obj.height);
+                console.log('Object DrawHeight = ', obj.drawHeight);
+                console.log('pos.row  = ', pos.row);
+                console.log('pos.col = ', pos.col);
+                if (Math.abs(i - pos.row) < obj.height && Math.abs(j - pos.col) < obj.width) {
+                  _results1.push(this.tileMap[i][j].tilePropeties["occupied"] = true);
+                } else {
+                  _results1.push(void 0);
+                }
               }
             }
             return _results1;
@@ -299,18 +398,13 @@
       for (i = _i = _ref = (row + 1) - obj.width; _ref <= row ? _i <= row : _i >= row; i = _ref <= row ? ++_i : --_i) {
         for (j = _j = _ref1 = (col + 1) - obj.height; _ref1 <= col ? _j <= col : _j >= col; j = _ref1 <= col ? ++_j : --_j) {
           if (this.tileMap[i] !== void 0 && this.tileMap[i][j] !== void 0) {
-            return false;
+            if (this.tileMap[i][j].tilePropeties.occupied === true) {
+              return false;
+            }
           }
         }
       }
       return true;
-    };
-
-    IsometricGrid.prototype.colourGrid = function(row, col, colour) {
-      if (this.tileMap[row] === void 0) {
-        this.tileMap[row] = [];
-      }
-      return this.tileMap[row][col] = colour;
     };
 
     IsometricGrid.prototype.handleKeyDown = function(e) {
@@ -331,13 +425,18 @@
     };
 
     IsometricGrid.prototype.handleDrag = function(e) {
-      var x, y;
+      var tile, x, y;
       e.preventDefault();
       if (this.dragHelper.active) {
         x = e.clientX;
         y = e.clientY;
         this.scrollPosition.x = Math.round(x - this.dragHelper.x);
         return this.scrollPosition.y = Math.round(y - this.dragHelper.y);
+      } else {
+        tile = this.translatePixelsToMatrix(e.clientX, e.clientY);
+        if (typeof this.tileMap[tile.row] !== 'undefined' && typeof this.tileMap[tile.row][tile.col] !== 'undefined') {
+          return this.mouseOverTile = this.tileMap[tile.row][tile.col];
+        }
       }
     };
 
@@ -354,6 +453,20 @@
       this.dragHelper.active = true;
       this.dragHelper.x = x - this.scrollPosition.x;
       return this.dragHelper.y = y - this.scrollPosition.y;
+    };
+
+    IsometricGrid.prototype.isArray = function(obj) {
+      return Object.prototype.toString.call(obj) === '[object Array]';
+    };
+
+    IsometricGrid.prototype.sortZ = function(a, b) {
+      if (a.z < b.z) {
+        return -1;
+      }
+      if (a.z > b.z) {
+        return 1;
+      }
+      return 0;
     };
 
     return IsometricGrid;
@@ -542,7 +655,7 @@
     function Game(numberRows, numberCols, tile) {
       this.animloop = __bind(this.animloop, this);
 
-      var defaultTile;
+      var defaultTile, spritesheet;
       Game.__super__.constructor.apply(this, arguments);
       this.createRenderer('canvas');
       this.renderer.fixSizeToScreen();
@@ -557,6 +670,7 @@
         height: numberCols,
         defaultTile: defaultTile
       });
+      spritesheet = assetManager.getAsset('sprite1');
       this.animloop();
     }
 
@@ -633,17 +747,34 @@
         }
       });
       return $("#createbuilding").unbind("click").click(function() {
-        var data, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSpritesheet, tWidth, _ref;
-        tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val());
-        tOffsetX = parseInt($("#offsetX").val());
-        tOffsetY = parseInt($("#offsetY").val());
-        tPixelWidth = parseInt($("#pixeltileWidth").val());
-        tPixelHeight = parseInt($("#pixeltileHeight").val());
-        tWidth = parseInt($("#tileWidth").val());
-        tHeight = parseInt($("#tileHeight").val());
-        tFrames = parseInt($("#frames").val());
-        tDuration = parseInt($("#duration").val());
-        tId = parseInt($("#id").val());
+        /*
+        
+              # get all the necessary variables from the user
+              tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val())
+              tOffsetX = parseInt($("#offsetX").val())
+              tOffsetY = parseInt($("#offsetY").val())
+              tPixelWidth = parseInt($("#pixeltileWidth").val())
+              tPixelHeight = parseInt($("#pixeltileHeight").val())
+              tWidth = parseInt($("#tileWidth").val())
+              tHeight = parseInt($("#tileHeight").val())
+              tFrames = parseInt($("#frames").val())
+              tDuration = parseInt($("#duration").val())
+              tId = parseInt($("#id").val())
+        */
+
+        var data, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSpritesheet, tWidth, tdrawHeight, tdrawWidth, _ref;
+        tSpritesheet = assetManager.getAsset('cinema');
+        tOffsetX = 0;
+        tOffsetY = 0;
+        tPixelWidth = 256;
+        tPixelHeight = 200;
+        tWidth = 2;
+        tHeight = 2;
+        tFrames = 1;
+        tDuration = 0;
+        tId = 'swhsj';
+        tdrawWidth = 3;
+        tdrawHeight = 3;
         if (mapData.buildingTileSets !== void 0 && buildingTileSet === void 0) {
           buildingTileSet = (_ref = mapData.buildingTileSets[flagNumber]) != null ? _ref : new BuildingTileSet(tSpritesheet);
         } else if (buildingTileSet === void 0) {
@@ -659,7 +790,9 @@
           duration: tDuration,
           width: tWidth,
           height: tHeight,
-          id: tId
+          id: tId,
+          drawWidth: tdrawWidth,
+          drawHeight: tdrawHeight
         };
         return buildingTileSet.buildings.push(data);
       });

@@ -188,7 +188,6 @@ class UI
 
       # place building
       if @selectedBuilding isnt null
-        console.log('sel bil = ' + @selectedBuilding.width)
         game.grid.placeBuilding(x, y, @selectedBuilding)
     
     

@@ -1,0 +1,14 @@
+{# Start Screen Header inherets common_header #}
+
+{% extends "common_header.html" %}
+
+{% block title %}J+ Isoengine - Start Screen{% endblock %}
+{% block css %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="css/start_screen.css" />
+{% endblock %}
+
+{% block js %}
+  {{ super() }}
+  <script type="text/javascript" src="lib/start_screen.js"></script>
+{% endblock %}

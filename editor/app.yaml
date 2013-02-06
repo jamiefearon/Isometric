@@ -1,0 +1,25 @@
+application: jplus-isoeditor
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /css
+  static_dir: css
+
+- url: /image
+  static_dir: image
+
+- url: /lib
+  static_dir: lib
+
+- url: /src
+  static_dir: src
+
+- url: /.*
+  script: editor.app
+
+libraries:
+- name: jinja2
+  version: latest

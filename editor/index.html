@@ -1,18 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Isometric</title>
-        <link href="css/game.css" rel="stylesheet" type="text/css">
-        <link rel="stylesheet" type="text/css" href="css/skin.css" />
-        <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
-        <script type="text/javascript" src="lib/jquery.jcarousel.min.js"></script>
-        <script type="text/javascript" src="lib/animframe.js"></script>
-		<script type="text/javascript" src="lib/PxLoader.js"></script>
-        <script type="text/javascript" src="lib/PxLoaderImage.js"></script>
-        <script type="text/javascript" src="lib/app.js"></script>
-		<script type="text/javascript" src="lib/jquery.rightClick.js"></script>
-    </head>
-    <body>
+{% include 'editor_header.html' %}
+
+
         <!-- canvas container -->
         <div id="container"></div>
 
@@ -108,28 +96,5 @@
 	    	<input class="button" id="done" type="submit" value="Done">
 	    </div>
 	</div>
-
-	<div id="menu">
-	    <div id="title">
-		<h1>j2 Map Editor</h1>
-	    </div>
-	    <div id="gameIntro">
-		<div>
-		    <p>Number of Rows</p>
-		    <input id="userRows" name="rows" type="number" min="1">
-		</div>
-		<div>
-		    <p>Number of Columns</p>
-		    <input id="userCols" name="cols" type="number" min="1">
-		</div>
-		<div>
-		    <p>Default Tile</p>
-		    <input id="userDefaultTile" type="input" value='grass'>
-		</div>
-		<div>
-		    <p><input class="button" id="userSubmit" type="submit" value="Create Grid"></p>
-		</div>
-            </div>
-        </div>
-    </body>
-</html>
+   
+{% include 'footer.html' %}

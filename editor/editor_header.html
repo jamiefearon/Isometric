@@ -1,0 +1,18 @@
+{# Start Screen Header inherets common_header #}
+
+{% extends "common_header.html" %}
+
+{% block title %}J+ Isoengine - Editor{% endblock %}
+{% block css %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="css/editor.css" />
+{% endblock %}
+
+{% block js %}
+  {{ super() }}
+  <script type="text/javascript" src="lib/animframe.js"></script>
+  <script type="text/javascript" src="lib/PxLoader.js"></script>
+  <script type="text/javascript" src="lib/PxLoaderImage.js"></script>
+  <script type="text/javascript" src="lib/app.js"></script>
+  <script type="text/javascript" src="lib/jquery.rightClick.js"></script>
+{% endblock %}

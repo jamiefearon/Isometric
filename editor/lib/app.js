@@ -142,8 +142,6 @@
       this.scrollPosition.y -= this.height * this.zoom + this.scrollPosition.y;
       this.scrollPosition.x -= this.width * this.zoom + this.scrollPosition.x;
       this.mouseOverTile = null;
-      this.mouseOverTileRow = null;
-      this.mouseOverTileCol = null;
       this.dragHelper = {
         active: false,
         x: 0,
@@ -204,7 +202,7 @@
     };
 
     IsometricGrid.prototype.draw = function() {
-      var buildingPosition, col, colCount, i, meow, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, startX, startY, xpos, ypos, _i, _ref, _results;
+      var buildingPosition, col, colCount, i, pos_BL, pos_BR, pos_TL, pos_TR, row, rowCount, startCol, startRow, startX, startY, xpos, ypos, _i, _ref, _results;
       pos_TL = this.translatePixelsToMatrix(1, 1);
       pos_BL = this.translatePixelsToMatrix(1, IsometricGrid.renderer.canvas.height);
       pos_TR = this.translatePixelsToMatrix(IsometricGrid.renderer.canvas.width, 1);
@@ -230,12 +228,6 @@
         $("#colStart").html(startRow);
         $("#rowEnd").html(rowCount);
         $("#colEnd").html(colCount);
-        if (this.mouseOverTileRow !== null) {
-          $("#row").html(this.mouseOverTileRow);
-        }
-        if (this.mouseOverTileCol !== null) {
-          $("#col").html(this.mouseOverTileCol);
-        }
         if (this.mouseOverTile !== null) {
           $("#arraySize").html(this.mouseOverTile.buildings.length);
           if (this.mouseOverTile.tilePropeties.occupied) {
@@ -261,7 +253,6 @@
             startY = ypos;
             if (Math.round(xpos) + this.tileWidth >= 0 && Math.round(ypos) + this.tileHeight >= 0 && Math.round(xpos) <= IsometricGrid.renderer.canvas.width && Math.round(ypos) <= IsometricGrid.renderer.canvas.height) {
               IsometricGrid.renderer.context.drawImage(this.defaultTile.spritesheet, Math.round(xpos), Math.round(ypos), this.tileWidth, this.tileHeight);
-              meow = 1;
               if (typeof this.tileMap[row] !== 'undefined' && typeof this.tileMap[row][col] !== 'undefined') {
                 if (this.isArray(this.tileMap[row][col].buildings)) {
                   startX += this.tileWidth * 0.5;
@@ -273,13 +264,13 @@
                       buildingPosition = this.getBuildingLocation(this.tileMap[row][col].buildings[i]);
                       this.tileMap[row][col].buildings[i].sprite.setPosition(buildingPosition.x, buildingPosition.y);
                       IsometricGrid.renderer.context.save();
-                      IsometricGrid.renderer.context.strokeStyle = "red";
+                      IsometricGrid.renderer.context.strokeStyle = "transparent";
                       IsometricGrid.renderer.context.beginPath();
-                      IsometricGrid.renderer.context.moveTo(startX, startY);
-                      IsometricGrid.renderer.context.lineTo(startX + 0.5 * this.tileWidth, startY - 0.5 * this.tileHeight);
-                      IsometricGrid.renderer.context.lineTo(startX, startY - this.tileHeight);
-                      IsometricGrid.renderer.context.lineTo(startX - 0.5 * this.tileWidth, startY - 0.5 * this.tileHeight);
-                      IsometricGrid.renderer.context.lineTo(startX, startY);
+                      IsometricGrid.renderer.context.moveTo(Math.round(startX), Math.round(startY));
+                      IsometricGrid.renderer.context.lineTo(Math.round(startX) + 0.5 * this.tileWidth, Math.round(startY) - 0.5 * this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(Math.round(startX), Math.round(startY) - this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(Math.round(startX) - 0.5 * this.tileWidth, Math.round(startY) - 0.5 * this.tileHeight);
+                      IsometricGrid.renderer.context.lineTo(Math.round(startX), Math.round(startY));
                       IsometricGrid.renderer.context.stroke();
                       IsometricGrid.renderer.context.clip();
                       this.tileMap[row][col].buildings[i].sprite.draw();
@@ -329,18 +320,6 @@
         duration: data.duration
       });
       obj = new Building(sprite, data.width, data.height, data.id, data.drawWidth, data.drawHeight);
-      /*
-          TODO:
-          Change the array system to this:
-          @tileMap[i][j] = {buildings : [], tilePropeties : {} }
-      
-          then to push new buildings, use:
-          @tileMap[i][j].buildings.push()
-      
-          and to add new tileProperties, use:
-          @tileMap[i][j].tilePropeties["occupied"] = true
-      */
-
       if (this.checkIfTileIsFree(obj, pos.row, pos.col)) {
         _results = [];
         for (i = _i = _ref = (pos.row + 1) - obj.drawWidth, _ref1 = pos.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
@@ -363,10 +342,8 @@
                 obj.z = i + j;
                 this.tileMap[i][j].buildings.push(obj);
                 this.tileMap[i][j].buildings.sort(this.sortZ);
-                this.tileMap[i][j].tilePropeties["occupied"] = true;
-                _results1.push(console.log('one'));
+                _results1.push(this.tileMap[i][j].tilePropeties["occupied"] = true);
               } else {
-                console.log('two');
                 if (this.tileMap[i][j] === void 0) {
                   this.tileMap[i][j] = {
                     buildings: [],
@@ -375,10 +352,6 @@
                 }
                 this.tileMap[i][j].buildings.push(new BuildingPortion(obj, pos.row, pos.col, pos.col + pos.row));
                 this.tileMap[i][j].buildings.sort(this.sortZ);
-                console.log('Object Height = ', obj.height);
-                console.log('Object DrawHeight = ', obj.drawHeight);
-                console.log('pos.row  = ', pos.row);
-                console.log('pos.col = ', pos.col);
                 if (Math.abs(i - pos.row) < obj.height && Math.abs(j - pos.col) < obj.width) {
                   _results1.push(this.tileMap[i][j].tilePropeties["occupied"] = true);
                 } else {
@@ -620,30 +593,39 @@
   mapData = {};
 
   init = function() {
-    var loader;
-    mapData.meow = 2;
+    /*
+    
+      
+    
+      This init function is also called on the start screen, so remove this script 
+      from start_screen header. 
+    
+      Make a new script which only loads on start_screen. This script will collect info settings default
+      tile etc. When user clicks submit all this data is sent to the servor and then the servor does 
+      a self.redirect('editor/?r=' + varable ) etc.
+    */
+
+    var loader, query_columns, query_defaultTile_name, query_rows;
+    console.log('hello mimi');
+    query_rows = $.query.get("r");
+    query_columns = $.query.get("c");
+    query_defaultTile_name = $.query.get("t");
     if (!assetManager) {
-      $('#gameIntro').hide();
       assetManager = new AssetManager();
       loader = new PxLoader();
+      assetManager.addAsset(loader.addImage("image/" + query_defaultTile_name + ".png"), query_defaultTile_name);
       assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1');
-      assetManager.addAsset(loader.addImage('image/grass.png'), 'grass');
       assetManager.addAsset(loader.addImage('image/tree.png'), 'tree');
       assetManager.addAsset(loader.addImage('image/cinema.png'), 'cinema');
       loader.addCompletionListener(function() {
-        return $('#gameIntro').show();
+        var defaultTile, numCols, numRows;
+        numRows = parseInt(query_rows) || 4;
+        numCols = parseInt(query_columns) || 4;
+        defaultTile = query_defaultTile_name || 'grass';
+        return game = new Game(numRows, numCols, defaultTile);
       });
-      loader.start();
+      return loader.start();
     }
-    return $('#userSubmit').click(function(e) {
-      var defaultTile, numCols, numRows;
-      e.preventDefault();
-      $('#menu').hide('slow');
-      numRows = parseInt($('#userRows').val()) || 4;
-      numCols = parseInt($('#userCols').val()) || 4;
-      defaultTile = $('#userDefaultTile').val() || 'grass';
-      return game = new Game(numRows, numCols, defaultTile);
-    });
   };
 
   $(document).ready(init);
@@ -832,7 +814,6 @@
       idClickEle = e.target.getAttribute('id');
       if (idClickEle === 'canvas') {
         if (this.selectedBuilding !== null) {
-          console.log('sel bil = ' + this.selectedBuilding.width);
           game.grid.placeBuilding(x, y, this.selectedBuilding);
         }
       }

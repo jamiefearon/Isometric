@@ -1,0 +1,92 @@
+{% include 'start_screen_header.html' %}
+
+<div id="header">
+	<h1>J+ Isoeditor</h1>
+</div>
+<div id='content'>
+	<div id='left_side'>
+		<div class='step'>
+			<h3>1</h3>
+			<h4>Select map size</h4>
+			<div class='step_box'>
+				<div class='display_inline-block'>
+					<p>Number of Rows</p>
+		    		<input id="userRows" name="rows" type="number" min="1">
+		    	</div>
+		    	<div class='display_inline-block'>
+		    		<p>Number of Columns</p>
+		    		<input id="userCols" name="cols" type="number" min="1">
+		    	</div>
+			</div>
+		</div>
+
+		<div class='step'>
+			<h3>2</h3>
+			<h4>Select default tile</h4>
+			<div class='step_box'>
+				<div id='default_tiles_view'>
+    		     	{% for defaultTile in defaultTiles %}
+    		     	  <div class="tile_wrap" id="tileid-{{ defaultTile.name }}" name="{{ defaultTile.name }}">
+                      	<div class="default_tiles_view_square">
+          	          		<img src="default_tile_img?image_name={{ defaultTile.name }}">
+                      		<p>{{ defaultTile.name }}</p>
+                	  	</div>
+                	  </div>
+        			{% endfor %}
+    			</div>
+    			<form id="upload_form" action="/upload" enctype="multipart/form-data" method="post">
+    				<fieldset>
+    					<legend>Upload New Default Tile</legend>
+						<p><input name="image_name" placeholder="Enter Tile Name"></p>
+						<p>
+      						<input name="image_url" type="file">
+      						<input id='submit' type="submit" value="Upload">
+      					</p>
+ 					</fieldset>
+ 				</form>
+			</div>
+		</div>
+	</div> 
+
+	<div id='right_side'>
+		<div class='step'>
+			<h3>3</h3>
+			<h4>Further settings</h4>
+			<div class='step_box'>
+				<p>blar blar blar ldjjksjkds</p>
+			</div>
+		</div>
+		
+		<div id='create_map'>
+			<P>Create Map</p>
+		</div>
+	</div> 
+
+</div>
+
+<!--
+<div id="menu">
+	    <div id="title">
+		<h1>j2 Map Editor</h1>
+	    </div>
+	    <div id="gameIntro">
+		<div>
+		    <p>Number of Rows</p>
+		    <input id="userRows" name="rows" type="number" min="1">
+		</div>
+		<div>
+		    <p>Number of Columns</p>
+		    <input id="userCols" name="cols" type="number" min="1">
+		</div>
+		<div>
+		    <p>Default Tile</p>
+		    <input id="userDefaultTile" type="input" value='grass'>
+		</div>
+		<div>
+		    <p><input class="button" id="userSubmit" type="submit" value="Create Grid"></p>
+		</div>
+            </div>
+</div>
+-->
+
+{% include 'footer.html' %}

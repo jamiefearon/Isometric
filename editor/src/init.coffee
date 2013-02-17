@@ -22,8 +22,6 @@ init = =>
 
 
   ###
-
-  console.log 'hello mimi'
   
   # Get the relevent URL Parameters to construct the map
   query_rows = $.query.get("r")
@@ -37,11 +35,7 @@ init = =>
     loader = new PxLoader()
 
     # Load the Default Tile
-    assetManager.addAsset(loader.addImage("image/#{query_defaultTile_name}.png"), query_defaultTile_name)
-
-    assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1')
-    assetManager.addAsset(loader.addImage('image/tree.png'), 'tree')
-    assetManager.addAsset(loader.addImage('image/cinema.png'), 'cinema')
+    assetManager.addAsset(loader.addImage("default_tile_img?image_name=#{query_defaultTile_name}"), query_defaultTile_name)
     
     loader.addCompletionListener =>
       # get the user selected number of rows, colunms and default tile

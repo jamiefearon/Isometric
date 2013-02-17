@@ -1,3 +1,7 @@
+# Change this to store the refrence to the spritesheets i.e. spritesheets/trees.png
+# And store the Jason from Texturepacker that has also been modified by BuildingSetCreationDialog
+
+
 class BuildingTileSet
 
 

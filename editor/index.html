@@ -4,14 +4,14 @@
         <!-- canvas container -->
         <div id="container"></div>
 
-        <!-- top toolbar -->
+        <!-- top toolbar (The fixed always there toolbar) -->
         <div id="toolbar" class="panel">
            <ul>
 		
 	    </ul>
         </div>
 
-        <!-- builing selection -->
+        <!-- builing selection (The sliding down toolbar containing the building ) -->
         <div id="buildingSelectionToolbar" class="panel">
             <ul>
                
@@ -35,66 +35,7 @@
 	        </ul>
         </div>
 	
-	<!-- set building tiles rightclick context menu -->
-	<div id="setBuildingTileSet">
-	    <h1>Set Building TileSet </h1>
-	    <div>
-	      <h2>Tileset name</h2>
-	      <input id="buildingTileSetName" type="text">
-	      <input class="button" id="load" type="submit" value="Load">
-	    </div>
-	    <h2>Create building</h2>
-	    <div>
-	      <h2>Start Frame</h2>
-	      <p>
-	      	<p>OffsetX</p>
-	      	<input id="offsetX" type="text">
-	      </p>
-	      <p>
-	      	<p>OffsetY</p>
-	      	<input id="offsetY" type="text">
-	      </p>
-	    </div>
-	    <div>
-	      <h2>Pixel Dimensions<h2>
-	      <p>
-	      	<p>Tile width</p>
-	      	<input id="pixeltileWidth" type="text">
-	  	  </p>
-	  	  <p>
-	      	<p>Tile height</p>
-	      	<input id="pixeltileHeight" type="text">
-	      </p>
-		</div>
-	    <div>
-	      <h2>Tile Dimensions<h2>
-	      <p>
-	      	<p>Tile width</p>
-	      	<input id="tileWidth" type="text">
-	      </p>
-	      <p>
-	      	<p>Tile height</p>
-	      	<input id="tileHeight" type="text">
-	      </p>
-	    </div>
-	    <div>
-	      <h2>Number of Frames</h2>
-	      <input id="frames" type="text">
-	    </div>
-	    <div>
-	      <h2>Duration</h2>
-	      <input id="duration" type="text">
-	    </div>
-	    <div>
-	      <h2>ID (name)</h2>
-	      <input id="id" type="text">
-	    </div>
-	    <div>
-		    <input class="button" id="createbuilding" type="submit" value="Create Building">
-	    </div>
-	    <div>
-	    	<input class="button" id="done" type="submit" value="Done">
-	    </div>
-	</div>
+		{% include 'building_tileset_panel.html' %}
+	
    
 {% include 'footer.html' %}

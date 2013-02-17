@@ -1,10 +1,43 @@
 {% include 'start_screen_header.html' %}
 
-<div id="header">
-	<h1>J+ Isoeditor</h1>
+
+
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+        	<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+          	</button>
+          	<a class="brand">J+ Iso&epsilon;ditor</a>
+          	<div class="nav-collapse collapse">
+            	<ul class="nav">
+            	</ul>
+          	</div><!--/.nav-collapse -->
+        </div>
+    </div>
 </div>
+
+<div class="container">
+    <div class="hero-unit">
+    	<h1>Welcome to J+ Iso&epsilon;ditor</h1>
+        <p class="lead text-info" >Created by Jamie Fearon | Graphics by Jing Xue</p>
+    </div>
+
+    <!-- Load Map -->
+    <div class="row">
+    	<div class="span4"><h3>Load Map</h3></div>
+    </div>
+
+    <!-- Create Map -->
+    <div class="row">
+        <div class="span4"><h3>Create Map</h3></div>
+    </div>
+</div> <!-- /container -->
+
 <div id='content'>
-	<div id='left_side'>
+	<div class='left_side'>
 		<div class='step'>
 			<h3>1</h3>
 			<h4>Select map size</h4>
@@ -27,10 +60,10 @@
 				<div id='default_tiles_view'>
     		     	{% for defaultTile in defaultTiles %}
     		     	  <div class="tile_wrap" id="tileid-{{ defaultTile.name }}" name="{{ defaultTile.name }}">
-                      	<div class="default_tiles_view_square">
+                      	
           	          		<img src="default_tile_img?image_name={{ defaultTile.name }}">
                       		<p>{{ defaultTile.name }}</p>
-                	  	</div>
+                	  	
                 	  </div>
         			{% endfor %}
     			</div>
@@ -48,7 +81,7 @@
 		</div>
 	</div> 
 
-	<div id='right_side'>
+	<div class='right_side'>
 		<div class='step'>
 			<h3>3</h3>
 			<h4>Further settings</h4>

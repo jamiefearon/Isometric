@@ -14,6 +14,12 @@ class Default_tiles(db.Model):
   name = db.StringProperty()
   image = db.BlobProperty(default=None)
 
+# Database containg the bts
+class Building_Tile_Sets(db.Model):
+  name = db.StringProperty()
+  json = db.StringProperty()
+  image = db.BlobProperty(default=None)
+
 
 
 
@@ -53,6 +59,25 @@ class Get_default_tile(webapp2.RequestHandler):
       return None
 
 
+# Handler for calls to '/spritesheet' GET this locally to fetch spritesheet
+class Get_spritesheet(webapp2.RequestHandler):
+  def get(self):
+    name = self.request.get('image_name')     # Get the image_name from client
+    spritesheet = self.get_spritesheet(name)  # Get image_name tile from database 
+    
+    # Send the image back to the client
+    self.response.headers['Content-Type'] = "image/png"
+    self.response.out.write(spritesheet.image)
+
+  # Querys the data base for image_name and returns the default tile named image_name
+  def get_spritesheet(self, name):
+    result = db.GqlQuery("SELECT * FROM Building_Tile_Sets WHERE name = :1 LIMIT 1", name).fetch(1)
+    if (len(result) > 0):
+      return result[0]
+    else:
+      return None
+
+
 # Handler for calls to '/upload' POST here to upload default tiles
 class Upload(webapp2.RequestHandler):
   def post(self):
@@ -70,6 +95,23 @@ class Upload(webapp2.RequestHandler):
     self.redirect('/')
 
 
+# Handler for calls to '/uploadBTS' POST here to upload BTS
+class UploadBTS(webapp2.RequestHandler):
+  def post(self):
+   
+    # get information from form post upload
+    bts_spriteSheet = self.request.get('bts_spriteSheet') 
+    bts_jason = self.request.get('bts_jason')
+    bts_name = self.request.get('bts_name')
+
+    # create database entry for uploaded image 
+    bts_entry = Building_Tile_Sets()
+    bts_entry.name = bts_name
+    bts_entry.json = bts_jason
+    bts_entry.image = db.Blob(bts_spriteSheet)
+    bts_entry.put()
+
+
 
 
 
@@ -85,5 +127,7 @@ class Editor(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([('/', StartScreen),
 							   ('/editor', Editor),
 							   ('/upload', Upload),
+                 ('/uploadBTS', UploadBTS),
+                 ('/spritesheet', Get_spritesheet),
 							   ('/default_tile_img', Get_default_tile)],
                               debug=True)

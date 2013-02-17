@@ -606,17 +606,13 @@
     */
 
     var loader, query_columns, query_defaultTile_name, query_rows;
-    console.log('hello mimi');
     query_rows = $.query.get("r");
     query_columns = $.query.get("c");
     query_defaultTile_name = $.query.get("t");
     if (!assetManager) {
       assetManager = new AssetManager();
       loader = new PxLoader();
-      assetManager.addAsset(loader.addImage("image/" + query_defaultTile_name + ".png"), query_defaultTile_name);
-      assetManager.addAsset(loader.addImage('image/sprite1.png'), 'sprite1');
-      assetManager.addAsset(loader.addImage('image/tree.png'), 'tree');
-      assetManager.addAsset(loader.addImage('image/cinema.png'), 'cinema');
+      assetManager.addAsset(loader.addImage("default_tile_img?image_name=" + query_defaultTile_name), query_defaultTile_name);
       loader.addCompletionListener(function() {
         var defaultTile, numCols, numRows;
         numRows = parseInt(query_rows) || 4;
@@ -674,6 +670,12 @@
 
       this.loadBuildingData = __bind(this.loadBuildingData, this);
 
+      this.uploadBTS = __bind(this.uploadBTS, this);
+
+      this.changeProperties = __bind(this.changeProperties, this);
+
+      this.displayProperties = __bind(this.displayProperties, this);
+
       this.displayBuildingSelectonDialog = __bind(this.displayBuildingSelectonDialog, this);
 
       this.setupToolbar = __bind(this.setupToolbar, this);
@@ -686,9 +688,13 @@
           return _this.UIMouseDown(e);
         }
       }, false);
+      this.bts_json = null;
+      this.bts_spritesheet = null;
+      this.bts_spritesheet_file = null;
       this.toolSelect = null;
       this.selectedBuilding = null;
       this.zoomLevel = 1;
+      this.selectedThumb = null;
       this.buildingSelectionToolBarVisible = false;
       this.setupToolbar();
     }
@@ -714,98 +720,204 @@
     };
 
     UI.prototype.displayBuildingSelectonDialog = function(id) {
-      var buildingTileSet, flagNumber,
+      var buildingTileSet, flagNumber, handleJSONSelection, handleSpritesheetSelection,
         _this = this;
       $("#setBuildingTileSet").css("visibility", "visible");
+      $("#numberFrames").prop('disabled', true);
       flagNumber = id.substring(7, id.length);
       buildingTileSet = void 0;
-      $("#done").unbind("click").click(function() {
-        $("#setBuildingTileSet").css("visibility", "hidden");
-        if (mapData.buildingTileSets === void 0) {
-          mapData.buildingTileSets = new Array();
-          return mapData.buildingTileSets[flagNumber] = buildingTileSet;
-        } else {
-          return mapData.buildingTileSets[flagNumber] = buildingTileSet;
+      handleJSONSelection = function(evt) {
+        var f, files, reader;
+        files = evt.target.files;
+        f = files[0];
+        reader = new FileReader();
+        reader.onload = (function(theFile) {
+          return function(e) {
+            var JsonObj, frame, framename, m, newframes, newname, oldframes, parsedJSON;
+            JsonObj = e.target.result;
+            console.log(JsonObj);
+            parsedJSON = JSON.parse(JsonObj);
+            oldframes = parsedJSON.frames;
+            newframes = {};
+            for (framename in oldframes) {
+              m = framename.match(/^(.+?)(\d*)\.png$/);
+              newname = m[1];
+              frame = oldframes[framename];
+              if (!(newname in newframes)) {
+                newframes[newname] = {
+                  size: frame.sourceSize,
+                  tile: {
+                    baseW: 0,
+                    baseH: 0,
+                    drawW: 0,
+                    drawH: 0
+                  }
+                };
+                if (m[2]) {
+                  newframes[newname] = {
+                    size: frame.sourceSize,
+                    tile: {
+                      baseW: 0,
+                      baseH: 0,
+                      drawW: 0,
+                      drawH: 0
+                    },
+                    animation: {
+                      frames: 0,
+                      speed: 0
+                    },
+                    frames: {}
+                  };
+                }
+              }
+              if (m[2]) {
+                newframes[newname].frames["frame" + m[2]] = frame.frame;
+              } else {
+                newframes[newname].frame = frame.frame;
+              }
+            }
+            parsedJSON.frames = newframes;
+            delete parsedJSON.meta;
+            parsedJSON.name = parsedJSON.frames;
+            delete parsedJSON.frames;
+            _.each(parsedJSON.name, function(val) {
+              if (_.has(val, 'animation')) {
+                return val.animation.frames = _.size(val.frames);
+              }
+            });
+            JsonObj = JSON.stringify(parsedJSON, null, 4);
+            console.log(JsonObj);
+            return _this.bts_json = parsedJSON;
+          };
+        })(f);
+        return reader.readAsText(f, 'UTF-8');
+      };
+      document.getElementById('upload_JSON').addEventListener('change', handleJSONSelection, false);
+      handleSpritesheetSelection = function(evt) {
+        var f, files, reader;
+        files = evt.target.files;
+        f = files[0];
+        _this.bts_spritesheet_file = f;
+        reader = new FileReader();
+        reader.onload = (function(theFile) {
+          return function(e) {
+            return _this.bts_spritesheet = e.target.result;
+          };
+        })(f);
+        return reader.readAsDataURL(f);
+      };
+      document.getElementById('upload_spritesheet').addEventListener('change', handleSpritesheetSelection, false);
+      $('#display_building_thumbs').click(function() {
+        var buildingFrame, buildingNames, _results;
+        buildingNames = _this.bts_json.name;
+        _results = [];
+        for (buildingFrame in buildingNames) {
+          _results.push((function(buildingFrame) {
+            var h, overlay, w, x, y;
+            if (buildingNames[buildingFrame].hasOwnProperty("frame")) {
+              w = buildingNames[buildingFrame]["size"]["w"];
+              h = buildingNames[buildingFrame]["size"]["h"];
+              x = buildingNames[buildingFrame]["frame"]["x"];
+              y = buildingNames[buildingFrame]["frame"]["y"];
+              $('#building_thumb_view').append("<div class='tile_wrap' id='bt-" + buildingFrame + "' style='                                              background-image:url(" + _this.bts_spritesheet + ");                                              background-position:-" + x + "px -" + y + "px;                                              width:" + w + "px;                                               height:" + h + "px;                                              '>" + buildingFrame + "</div>");
+            }
+            if (buildingNames[buildingFrame].hasOwnProperty("frames")) {
+              w = buildingNames[buildingFrame]["size"]["w"];
+              h = buildingNames[buildingFrame]["size"]["h"];
+              x = buildingNames[buildingFrame]["frames"]["frame1"]["x"];
+              y = buildingNames[buildingFrame]["frames"]["frame1"]["y"];
+              $('#building_thumb_view').append("<div class='tile_wrap' id='bt-" + buildingFrame + "' style='                                              background-image:url(" + _this.bts_spritesheet + ");                                              background-position:-" + x + "px -" + y + "px;                                              width:" + w + "px;                                               height:" + h + "px;                                              '>" + buildingFrame + "</div>");
+            }
+            overlay = $('.tile_wrap');
+            return $("#bt-" + buildingFrame).click(function() {
+              if ($("#bt-" + buildingFrame).hasClass('selected')) {
+                $("#bt-" + buildingFrame).removeClass('selected');
+                _this.selectedThumb = null;
+                $('#baseWidth').val('');
+                $('#baseHeight').val('');
+                $('#drawWidth').val('');
+                $('#drawHeight').val('');
+                $('#numberFrames').val('');
+                return $('#animationSpeed').val('');
+              } else {
+                if ($('[id^="bt-"]').hasClass('selected')) {
+                  $('[id^="bt-"]').removeClass('selected');
+                }
+                overlay.removeClass('selected');
+                $("#bt-" + buildingFrame).addClass('selected');
+                _this.selectedThumb = buildingFrame;
+                return _this.displayProperties(buildingFrame);
+              }
+            });
+          })(buildingFrame));
         }
+        return _results;
       });
-      return $("#createbuilding").unbind("click").click(function() {
-        /*
-        
-              # get all the necessary variables from the user
-              tSpritesheet = assetManager.getAsset($("#buildingTileSetName").val())
-              tOffsetX = parseInt($("#offsetX").val())
-              tOffsetY = parseInt($("#offsetY").val())
-              tPixelWidth = parseInt($("#pixeltileWidth").val())
-              tPixelHeight = parseInt($("#pixeltileHeight").val())
-              tWidth = parseInt($("#tileWidth").val())
-              tHeight = parseInt($("#tileHeight").val())
-              tFrames = parseInt($("#frames").val())
-              tDuration = parseInt($("#duration").val())
-              tId = parseInt($("#id").val())
-        */
-
-        var data, tDuration, tFrames, tHeight, tId, tOffsetX, tOffsetY, tPixelHeight, tPixelWidth, tSpritesheet, tWidth, tdrawHeight, tdrawWidth, _ref;
-        tSpritesheet = assetManager.getAsset('cinema');
-        tOffsetX = 0;
-        tOffsetY = 0;
-        tPixelWidth = 256;
-        tPixelHeight = 200;
-        tWidth = 2;
-        tHeight = 2;
-        tFrames = 1;
-        tDuration = 0;
-        tId = 'swhsj';
-        tdrawWidth = 3;
-        tdrawHeight = 3;
-        if (mapData.buildingTileSets !== void 0 && buildingTileSet === void 0) {
-          buildingTileSet = (_ref = mapData.buildingTileSets[flagNumber]) != null ? _ref : new BuildingTileSet(tSpritesheet);
-        } else if (buildingTileSet === void 0) {
-          buildingTileSet = new BuildingTileSet(tSpritesheet);
-        }
-        data = {
-          spritesheet: tSpritesheet,
-          pixelWidth: tPixelWidth,
-          pixelHeight: tPixelHeight,
-          offsetX: tOffsetX,
-          offsetY: tOffsetY,
-          frames: tFrames,
-          duration: tDuration,
-          width: tWidth,
-          height: tHeight,
-          id: tId,
-          drawWidth: tdrawWidth,
-          drawHeight: tdrawHeight
-        };
-        return buildingTileSet.buildings.push(data);
+      $('#changeProperties').click(function() {
+        return _this.changeProperties();
+      });
+      return $('#uploadbts').click(function() {
+        return _this.uploadBTS();
       });
     };
 
-    UI.prototype.loadBuildingData = function(flagNumber) {
-      var buildingTileSet, filename, i, index, spriteMap, that, _i, _ref, _results;
-      if (mapData.buildingTileSets !== void 0 && mapData.buildingTileSets[flagNumber] !== void 0) {
-        buildingTileSet = mapData.buildingTileSets[flagNumber];
+    UI.prototype.displayProperties = function(buildingThumbName) {
+      var buildingNames;
+      buildingNames = this.bts_json.name;
+      $('#baseWidth').val(buildingNames[buildingThumbName]['tile'].baseW);
+      $('#baseHeight').val(buildingNames[buildingThumbName]['tile'].baseH);
+      $('#drawWidth').val(buildingNames[buildingThumbName]['tile'].drawW);
+      $('#drawHeight').val(buildingNames[buildingThumbName]['tile'].drawH);
+      if (buildingNames[buildingThumbName].hasOwnProperty("frames")) {
+        $('#numberFrames').val(buildingNames[buildingThumbName]['animation'].frames);
+        $('#animationSpeed').val(buildingNames[buildingThumbName]['animation'].speed);
+        return $("#animationSpeed").prop('disabled', false);
       } else {
-        $("#buildingSelectionToolbar ul").empty();
-        return;
+        $('#numberFrames').val('');
+        $('#animationSpeed').val('');
+        return $("#animationSpeed").prop('disabled', true);
       }
-      $("#buildingSelectionToolbar ul").empty();
-      spriteMap = mapData.buildingTileSets[flagNumber].spritesheet.src;
-      index = spriteMap.lastIndexOf("/") + 1;
-      filename = spriteMap.substr(index);
-      that = this;
-      _results = [];
-      for (i = _i = 0, _ref = mapData.buildingTileSets[flagNumber].buildings.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-        $("#buildingSelectionToolbar ul").append("<li id='buildingIcon" + i + "' class='" + flagNumber + "' data-iconNumber='" + i + "' data-flagNumber='" + flagNumber + "'></li>");
-        $("#buildingIcon" + i).css("background", "url(image/" + filename + ") -" + mapData.buildingTileSets[flagNumber].buildings[i].offsetX + "px -" + mapData.buildingTileSets[flagNumber].buildings[i].offsetY + "px no-repeat");
-        $("#buildingIcon" + i).click(function(e) {
-          return that.selectedBuilding = mapData.buildingTileSets[parseInt($(this).attr("data-flagNumber"))].buildings[parseInt($(this).attr("data-iconNumber"))];
-        });
-        $("#buildingSelectionToolbar li").css('width', "" + mapData.buildingTileSets[flagNumber].buildings[i].pixelWidth + "px");
-        $("#buildingSelectionToolbar li").css('height', "" + mapData.buildingTileSets[flagNumber].buildings[i].pixelHeight + "px");
-        _results.push($("#buildingSelectionToolbar").css('height', "" + mapData.buildingTileSets[flagNumber].buildings[i].pixelHeight + "px"));
-      }
-      return _results;
     };
+
+    UI.prototype.changeProperties = function() {
+      var JsonObj, buildingNames;
+      console.log('Thumb to change is', this.selectedThumb);
+      buildingNames = this.bts_json.name;
+      if (this.selectedThumb !== null) {
+        buildingNames[this.selectedThumb]['tile'].baseW = $('#baseWidth').val();
+        buildingNames[this.selectedThumb]['tile'].baseH = $('#baseHeight').val();
+        buildingNames[this.selectedThumb]['tile'].drawW = $('#drawWidth').val();
+        buildingNames[this.selectedThumb]['tile'].drawH = $('#drawHeight').val();
+        if (buildingNames[this.selectedThumb].hasOwnProperty("frames")) {
+          buildingNames[this.selectedThumb]['animation'].speed = $('#animationSpeed').val();
+        }
+      }
+      JsonObj = JSON.stringify(this.bts_json, null, 4);
+      return console.log(JsonObj);
+    };
+
+    UI.prototype.uploadBTS = function() {
+      var formData, name, xhr,
+        _this = this;
+      name = $('#btsName').val();
+      formData = new FormData();
+      formData.append('bts_jason', this.bts_json);
+      formData.append('bts_name', name);
+      formData.append('bts_spriteSheet', this.bts_spritesheet_file);
+      xhr = new XMLHttpRequest();
+      xhr.open('POST', '/uploadBTS', true);
+      xhr.onload = function(e) {
+        return console.log('yay its done');
+      };
+      return xhr.send(formData);
+      /*
+          $.post "/uploadBTS?bts_spriteSheet=#{@bts_spritesheet_url}&bts_jason=#{@bts_json}&bts_name=#{name}", (data) =>
+            console.log 'succsess'
+      */
+
+    };
+
+    UI.prototype.loadBuildingData = function(flagNumber) {};
 
     UI.prototype.UIMouseDown = function(e) {
       var idClickEle, x, y;
